@@ -5,5 +5,10 @@ splunk> related tools scripts etc
 
 A helper script to never ever use splunk> commands with a wrong username!
 
-Checkout the README there for full details.
+Checkout the README within the subfolder for full details.
 
+### ./getiops
+
+A helper to identify IOPS with several tools.
+
+Checkout the README within the subfolder for full details.

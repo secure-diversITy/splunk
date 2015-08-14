@@ -1,0 +1,62 @@
+# doing the bonnie stuff
+F_BONNIE(){
+    BATCH=$1
+    CSV=$2
+    if [ "x$BATCH" == "x0" ];then
+        # bonnie++ disclaimer
+        echo -e "\nDISCLAIMER:\n"
+        echo "  First of all: bonnie++ itself can **NOT** display IOPS!! The most people"
+        echo "  using it to catch 'Random seeks' which is not the same then IOPS."
+        echo "  Well but even splunk> mentioned bonnie for measuring to get a direction."
+        echo
+        echo "  The results of bonnie++ are an indicator only! This means the results are no hard"
+        echo "  facts! You can have 600 Random Seeks as a result and everything is working as expected"
+        echo "  but you can also have 1500 Random Seeks and still having I/O problems!"
+        echo
+        echo "  The way bonnie++ is testing is not absolutely perfect the same as splunk> works in truth."
+        echo "  For example sequential and random access is not measured with bonnie++ and"
+        echo "  there are dozens of hardware caches playing a role (like disk controler, OS, ...)" 
+        echo
+        echo "  That said you will get a feeling about your storage setup."
+        echo "  Just keep that in mind when using bonnie++ and/or this helper script."
+        echo
+        echo "  When you have less than 800 Random Seeks:"
+        echo "  - don't panic that just means you need to do more test e.g. on another device"
+        echo "  - you can always take a look on the bonnie++ options to change behaviour"
+        echo "  - restart this script and try another IOPS tester"
+        echo
+        echo "*************************************************************************************"
+        echo " I UNDERSTOOD BONNIE's BEHAVIOUR AND STILL WANT TO PROCEED:"    
+    
+        read -p "[y|n] > " ANSW
+        if [ "$ANSW" != "y" ];then
+            echo "aborted as requested."
+        fi
+        
+        clear
+        echo -e "\nNow several answers are required to set bonnie up:\n"
+        
+        read -p "Splunk is stopped (I do not verify if you lie!) ? [y|n] > " SPLPROC
+        [ "x$SPLPROC" != "xy" ]&&echo -e "\n\tABORTED. Please stop splunk first!\n"&& exit
+        read -p "Your amount of RAM in Megabyte (MB) > " RAM
+        read -p "The mountpoint / storage you want to test > " STORAGE
+        read -p "How many tests? (leave empty for default: 10) > " TESTS
+        read -p "Number of files getting written (leave empty for default: 100) > " NFILES
+        read -p "Number of directories (leave empty for default: 100) > " DIRS
+    else
+        # doing it fully automatic...
+        echo "This is not ready yet.."
+    fi
+
+    BSIZE=$(($RAM * 3))
+    [ "x$BATCH" == "x0" ]&&echo -e "\n\tCalculated file size is: $BSIZE MB ($RAM * 3 to trick cache)"
+    [ ! -d "$STORAGE" ]&&echo -e "\n\tABORTED! $STORAGE seems to not exist!?\n"&& exit 3
+    [ "x$BATCH" == "x0" ]&&echo -e "\tTake a cup of coffee - or two. This will take a while!!!\n\tBest practice is: Start 'iostat 1' and watching the 'tps' column while this is running..\n"
+    [ -z "$TESTS" ]&& TESTS="10"
+    [ -z "$NFILES" ]&& NFILES="100"
+    [ -z "$DIRS" ]&& DIRS="100"
+
+    # finally doing the magic number:max:min:num-directories:chunk-size
+    $BONBIN -x $TESTS -d $STORAGE -s ${BSIZE}m -r ${RAM}m -b -n ${NFILES}:${BSIZE}:8:${DIRS} >> $CSV
+}
+
