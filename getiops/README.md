@@ -19,3 +19,9 @@ It supports several linux tools and comes with a predefined set of best practice
 
 TBD
 
+## Roadmap
+
+1) creating a package containing above tools
+2) Maybe: creating splunk dashboard to display the results
+
+

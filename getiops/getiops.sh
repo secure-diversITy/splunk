@@ -5,7 +5,7 @@
 # Created:      2015-08-14
 # License:      CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 #
-# Desc:		    Stress your storage setup to find out IOPS
+# Desc:         Stress your storage setup to find out IOPS
 #
 #########################################################################################
 #
@@ -76,6 +76,9 @@ while [ -z $CHOICE ];do
     read -p "type in the digit from above: > " CHOICE
 done
 
+# do what the user want to do
+# the first argument when exec a function is always the batch mode.
+# 0 means interactive. 1 means batch mode.
 case $CHOICE in
     a1) # auto bonnie
         F_BONNIE 1 $BCSV
