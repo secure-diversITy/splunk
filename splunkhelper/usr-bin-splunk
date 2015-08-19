@@ -52,7 +52,7 @@ case $BIN in
         splunk) # a simple wrapper with all given arguments
         # workaround for DAMN $@ handling in bash when fwd them to su
         for i in "$@";do ARGS="$ARGS $i";done
-		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n... splunk arguments: $ARGS" && su -c "$SPLBIN $ARGS" - $SPLUSR; else "$SPLBIN" "$@";fi
+		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n... splunk arguments: $ARGS\n" && su -c "$SPLBIN $ARGS" - $SPLUSR; else "$SPLBIN" "$@";fi
         ;;
         splunkstop) # stop splunk>
 		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN stop" - $SPLUSR; else "$SPLBIN" stop;fi
