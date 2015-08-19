@@ -7,6 +7,12 @@
   - Never worry about doing splunk> related commands with the correct user!
   - No need to switch from user >root< to your splunk user 
 
+    Since splunk> v6.1.1 a Variable SPLUNK_OS_USER exists which is doing more or less the same
+    but it doesn't work in the same manner and comes without the command shortcuts of course.
+    
+    Setting this Variable is nevertheless a good idea just as a fallback if something goes wrong
+    (see install for the details).
+
 ## Usage:
 
    It is recommended to install this script in /usr/bin and name it "splunk". This 
@@ -56,4 +62,23 @@
 		
 	6) you should check the output carefully once that everything goes well but then
 	   you never need to care about again ;)
-
+       
+    7) Automatic splunk> start by init.d: You need to enable the init.d script *without* the splunkhelper cmds and as user <root>:
+            #> /opt/splunk/bin/splunk enable boot-start -user splunk
+            (where "/opt/splunk/" is your splunk installation path)
+       
+       Afterwards open the init.d script and change all occurences of the path:
+            #> vim /etc/init.d/splunk
+            /opt/splunk/ --> /usr/
+            e.g.:
+            "/opt/splunk/bin/splunk" start ..... --> "/usr/bin/splunk" start ...
+    
+    8) if splunk version >= 6.1.1: Set/Check the fallback splunk user variable:
+            (splunk)$> vim /opt/splunk/etc/splunk-launch.conf
+            
+            SPLUNK_OS_USER=splunk (where "splunk" is your splunk username)
+            
+        That variable should be set already correctly by step 7 but checking it doesn't hurt right?!
+        If that variable is set and you forget step 7 or overwrite the init.d script by accident
+        it will not destroy anything 'cause of this variable here.
+        
