@@ -1,23 +1,26 @@
 ## Description
 
-   Have you ever started splunk> as the wrong user? Oh well if you HAVE you know what I
-   mean. This helper here exists to avoid those forever! 
+   Have you ever started splunk> as the wrong user? Oh well if you *HAVE* - you know what I
+   mean. This helper here exists to avoid this problem forever! 
    Just configure this helper as described in "Install" and begin using splunk> "worry-free".
 
-  - Never worry about doing splunk> related commands with the correct user!
-  - No need to switch from user >root< to your splunk user 
+   Note:   
+   Since splunk> v6.1.1 a Variable *SPLUNK_OS_USER* exists which is doing more or less the same
+   but not in the complete same manner and it comes without the command shortcuts, of course.
+   Setting this Variable is nevertheless a good idea - at least as a fallback if something goes wrong
+   (see install for the details). Using that variable + this helper will make your splunk commands
+   as much immutable as possible!
 
-    Since splunk> v6.1.1 a Variable SPLUNK_OS_USER exists which is doing more or less the same
-    but it doesn't work in the same manner and comes without the command shortcuts of course.
-    
-    Setting this Variable is nevertheless a good idea just as a fallback if something goes wrong
-    (see install for the details).
+- Never worry about doing splunk> related commands with the correct user
+- No need to switch from user >root< to your splunk user (privileges gets dropped automagically)
+- Ease up your life by entering simple shortcuts instead of non-rememberable arguments
+- Simply execute splunk commands regardless in which path you currently are in
 
 ## Usage:
 
-   It is recommended to install this script in /usr/bin and name it "splunk". This 
-   way wherever you are you can simply type "splunk" or one of the shortcut commands
-   and don't care about using the correct user.
+   You have to install this script in /usr/bin and name it "splunk" (see "Install"). That way wherever
+   you are you can simply type "splunk" or one of the shortcut commands and don't need to care
+   about using the correct user.
 
 - "splunk" can use all arguments like with /opt/splunk/bin/splunk
 - execute one of the shortcut commands to do a quick action as explained in the next chapter
@@ -41,7 +44,7 @@
 	2) check the user vars within this script >SPLUSR< and >SPLDIR< to match your setup!!!
 	   This is the MOST ESSENTIAL step. If you do a mistake here you will get messed up so check twice!
 	   
-	3) copy the following 1 liner (you may need to scroll to see it fully) 
+	3) copy the following 1 liner (you may need to scroll to see it fully!) 
 	   and paste in the CLI as user >root< :
 	ln -s /usr/bin/splunk /usr/bin/splunkrestart;ln -s /usr/bin/splunk /usr/bin/splunkwebrestart;ln -s /usr/bin/splunk /usr/bin/splunkdebug;ln -s /usr/bin/splunk /usr/bin/splunkstop;ln -s /usr/bin/splunk /usr/bin/splunkstart;ln -s /usr/bin/splunk /usr/bin/splunkstatus
 	
@@ -54,7 +57,7 @@
 		splunk helpers are running (PIDs: 6536 6547 6879 7061).
 		
 	5) type "splunk status" (or "splunkstatus") as user <splunk> (the one you defined as SPLUSR)
-	   it should look similar to this:
+	   it should look similar to this (no "dropping privileges" because executed by the SPLUSR):
 		... execution command was <splunk>
 		... executed as user <splunk>
 		splunkd is running (PID: 6535).
