@@ -18,7 +18,7 @@
 
 ## Usage:
 
-   You will install this script in /usr/bin and name it "splunk" (see "Install"). That way wherever
+   You have to install this script in /usr/bin and name it "splunk" (see "Install"). That way wherever
    you are you can simply type "splunk" or one of the shortcut commands and don't need to care
    about using the correct user.
 
@@ -57,7 +57,7 @@
 		splunk helpers are running (PIDs: 6536 6547 6879 7061).
 		
 	5) type "splunk status" (or "splunkstatus") as user <splunk> (the one you defined as SPLUSR)
-	   it should look similar to this:
+	   it should look similar to this (no "dropping privileges" because executed by the SPLUSR):
 		... execution command was <splunk>
 		... executed as user <splunk>
 		splunkd is running (PID: 6535).
