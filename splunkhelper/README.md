@@ -75,6 +75,8 @@
             /opt/splunk/ --> /usr/
             e.g.:
             "/opt/splunk/bin/splunk" start ..... --> "/usr/bin/splunk" start ...
+            or use sed:
+            #> sed -i s#/opt/splunk/bin#/usr/bin#g /etc/init.d/splunk
     
     8) if splunk version >= 6.1.1: Set/Check the fallback splunk user variable:
             (splunk)$> vim /opt/splunk/etc/splunk-launch.conf
