@@ -40,7 +40,7 @@ fi
 
 # see how we get called:
 BIN=${0##*/}
-echo -e "\n... execution command was <$BIN>\n... executed as user <$ID>\n"
+echo -e "\n... execution command was <$BIN>\n... executed as user <$ID>"
 
 # and act accordingly:
 case $BIN in
@@ -51,7 +51,7 @@ case $BIN in
 	# this will not destroy the splunk> dirs..!
         splunk) # a simple wrapper with all given arguments
         # workaround for DAMN $@ handling in bash when fwd them to su
-        for i in "$@";do ARGS="$ARGS $i"; echo $ARGS ;done
+        for i in "$@";do ARGS="$ARGS $i";done
 		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n... splunk arguments: $ARGS" && su -c "$SPLBIN $ARGS" - $SPLUSR; else "$SPLBIN" "$@";fi
         ;;
         splunkstop) # stop splunk>
