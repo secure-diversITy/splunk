@@ -4,19 +4,17 @@
    mean. This helper here exists to avoid this problem forever! 
    Just configure this helper as described in "Install" and begin using splunk> "worry-free".
 
-- Never worry about doing splunk> related commands with the correct user
-- No need to switch from user >root< to your splunk user (privileges gets dropped automagically)
-- Ease up your life by entering simple shortcuts instead of non-rememberable arguments
-- Simply execute splunk commands regardless in which path you currently are in
-
-
-   Note:
-   
+   Note:   
    Since splunk> v6.1.1 a Variable *SPLUNK_OS_USER* exists which is doing more or less the same
    but not in the complete same manner and it comes without the command shortcuts, of course.
    Setting this Variable is nevertheless a good idea - at least as a fallback if something goes wrong
    (see install for the details). Using that variable + this helper will make your splunk commands
    as much immutable as possible!
+
+- Never worry about doing splunk> related commands with the correct user
+- No need to switch from user >root< to your splunk user (privileges gets dropped automagically)
+- Ease up your life by entering simple shortcuts instead of non-rememberable arguments
+- Simply execute splunk commands regardless in which path you currently are in
 
 ## Usage:
 
