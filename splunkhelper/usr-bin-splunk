@@ -19,7 +19,7 @@
 #
 #########################################################################################
 #
-# Last changed: 2015-08-14
+# Last changed: 2015-08-19
 #
 #########################################################################################
 
@@ -50,7 +50,9 @@ case $BIN in
 	# this way I ensure that even when the user id was not catched correctly that 
 	# this will not destroy the splunk> dirs..!
         splunk) # a simple wrapper with all given arguments
-		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN $@" - $SPLUSR; else "$SPLBIN" "$@";fi
+        # workaround for DAMN $@ handling in bash when fwd them to su
+        for i in "$@";do ARGS="$ARGS $i"; echo $ARGS ;done
+		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n... splunk arguments: $ARGS" && su -c "$SPLBIN $ARGS" - $SPLUSR; else "$SPLBIN" "$@";fi
         ;;
         splunkstop) # stop splunk>
 		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN stop" - $SPLUSR; else "$SPLBIN" stop;fi
