@@ -24,13 +24,21 @@
 #########################################################################################
 
 # user vars:
-SPLUSR="splunk"			# the user splunk should run as
-SPLDIR="/opt/splunk"		# splunk installation path
+SPLUSR="splunk"			        # the user splunk should run as
+SPLDIR="/opt/splunk"		    # splunk installation path
+FORCEOLD=                       # If you're using an older version as the supported one you can set
+                                # this variable to "y" and no warning message will appear anymore
+
+# SH cluster configs (if you have one):
+SHCMEMB=                        # 1 SH cluster member for deploying the config bundle
+                                # You can leave this value empty (recommended) to ask for it
+SHCPORT=8089                    # Management port of your SH cluster members (normally 8089)
 
 
-# generated vars:
-SPLBIN="$SPLDIR/bin/splunk"	# the generated full path to splunk binary
-ID=$(id -un) 			# get the effective - not real user name
+# system vars:
+SUPPVER=620                     # The supported and tested splunk> version. It may or may not work with older versions
+SPLBIN="$SPLDIR/bin/splunk"	    # the generated full path to splunk binary
+ID=$(id -un) 			        # get the effective - not real user name
 
 # ensure we have root perms. we will drop privs when needed later.
 if [ "$ID" != "root" ]&&[ "$ID" != "$SPLUSR" ];then
@@ -41,6 +49,37 @@ fi
 # see how we get called:
 BIN=${0##*/}
 echo -e "\n... execution command was <$BIN>\n... executed as user <$ID>\n"
+
+# it may be a good idea to execute the version check for specific commands only so
+# it is prepared as a function to do so later
+F_VERSION(){
+    unset AVERSION SVERSION
+    for i in $($SPLBIN version |grep build);do
+        a=$(($a+1))
+        AVERSION[$a]="$i"
+    done
+    # the version is the second value of the above created array
+    #echo "DEBUG: ${AVERSION[@]}"
+    SVERSION=${AVERSION[2]//\./}
+    if [ -z "$SVERSION" ];then
+        echo -e "\n*******************************************************************"
+        echo -e "WARNING: Cannot determine splunk> version...\n\nTHIS IS VERY(!) UNUSUAL.\n\nTherefore I cannot check if this script would work for you.."
+        echo -e "*******************************************************************\n"
+        read -p "Press ENTER to continue or CTRL+C to abort" DUMMY
+    else
+        # check if version is supported
+        if [ "$SVERSION" -lt "$SUPPVER" ]&&[ -z "$FORCEOLD" ];then
+            echo -e "\n*******************************************************************"
+            echo -e "WARNING: Your splunk> version ($SVERSION) is older then the\nsupported version ($SUPPVER)...\n\nTherefore I cannot guarantee that this script works for you in all cases..\n\n(Well this is MOSTLY relevant for special commands like splunkshcdeploy etc.\nStart/Stop/Status are working fine in older versions)\n\nYou can set FORCEOLD to avoid this message from appearing"
+            echo -e "*******************************************************************\n\n"
+            read -p "Do you still want to continue (press ENTER or CTRL+C to abort)?" ANS
+            [ ! -z "$ANS" ]&& echo "... exiting with $ANS " && exit
+        fi
+    fi
+}
+
+# this will move later to the special commands where we need this
+F_VERSION
 
 # and act accordingly:
 case $BIN in
@@ -69,5 +108,36 @@ case $BIN in
         ;;
         splunkstatus) # splunk> status
 		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN status" - $SPLUSR; else "$SPLBIN" status;fi
+        ;;
+        splunkshcdeploy) # splunk> SH cluster deploy configuration bundle
+        [ ! "$ID" == "$SPLUSR" ] && echo -e "... will drop privileges to user <$SPLUSR>\n"
+        if [ -z "$SHCMEMB" ];then
+            while [ -z "$SHCMEMB" ];do
+                echo -e "\nHint: SHCMEMB variable is not defined in $BIN\n"
+                read -p "Please specify 1 active SH cluster member (e.g.: '1.1.1.1' or 'my.fqdn.com') > " SHCMEMB
+            done
+        fi
+        SHCURI="https://${SHCMEMB}:${SHCPORT}"
+        if [ ! "$ID" == "$SPLUSR" ];then
+            echo -e "\n... now dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN apply shcluster-bundle -target $SHCURI" - $SPLUSR
+        else
+            echo
+            "$SPLBIN" apply shcluster-bundle -target "$SHCURI"
+        fi
+        ;;
+        splunkcmdeploy) # splunk> Index cluster deploy configuration bundle
+        if [ ! "$ID" == "$SPLUSR" ];then
+            echo -e "... dropping privileges to user <$SPLUSR>\n"
+            su -c "$SPLBIN list master-info" - $SPLUSR > /dev/null
+            MERR=$?
+            if [ $MERR -ne 0 ];then echo -e "\tERROR: This command can be executed on a Cluster Master only!\n" && exit $MERR ;fi
+            su -c "$SPLBIN apply cluster-bundle" - $SPLUSR
+        else
+            echo
+            "$SPLBIN" list master-info > /dev/null
+             MERR=$?
+             if [ $MERR -ne 0 ];then echo -e "\tERROR: This command can be executed on a Cluster Master only!\n" && exit $MERR ;fi
+            "$SPLBIN" apply cluster-bundle
+        fi
         ;;
 esac

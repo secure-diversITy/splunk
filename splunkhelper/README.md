@@ -34,6 +34,11 @@
        splunkstop              --      Stops splunk
        splunkstart             --      Starts splunk
        splunkstatus            --      Status of splunk and helper processes
+       splunkshcdeploy         --      Deploy configuration bundle within a Search Head Cluster
+                                       It will ask you for a cluster member
+       splunkcmdeploy          --      Deploy configuration bundle within a cluster
+                                       This will work on a Cluster Master (CM) only and this is checked
+                                       first. If not executed on a CM it will abort.
 
 ## Install:
 
@@ -44,9 +49,16 @@
 	2) check the user vars within this script >SPLUSR< and >SPLDIR< to match your setup!!!
 	   This is the MOST ESSENTIAL step. If you do a mistake here you will get messed up so check twice!
 	   
-	3) copy the following 1 liner (you may need to scroll to see it fully!) 
+	3) copy the following linker cmd (copy it fully and press ENTER) 
 	   and paste in the CLI as user >root< :
-	ln -s /usr/bin/splunk /usr/bin/splunkrestart;ln -s /usr/bin/splunk /usr/bin/splunkwebrestart;ln -s /usr/bin/splunk /usr/bin/splunkdebug;ln -s /usr/bin/splunk /usr/bin/splunkstop;ln -s /usr/bin/splunk /usr/bin/splunkstart;ln -s /usr/bin/splunk /usr/bin/splunkstatus
+       ln -s /usr/bin/splunk /usr/bin/splunkrestart; \
+       ln -s /usr/bin/splunk /usr/bin/splunkwebrestart; \
+       ln -s /usr/bin/splunk /usr/bin/splunkdebug;\
+       ln -s /usr/bin/splunk /usr/bin/splunkstop;\
+       ln -s /usr/bin/splunk /usr/bin/splunkstart;\
+       ln -s /usr/bin/splunk /usr/bin/splunkstatus;\
+       ln -s /usr/bin/splunk /usr/bin/splunkshcdeploy; \
+       ln -s /usr/bin/splunk /usr/bin/splunkcmdeploy
 	
 	4) test it by going away from /usr/bin and type "splunk status" (or "splunkstatus") as user >root<
 	   it should look similar to this:
