@@ -112,7 +112,14 @@ case $BIN in
 		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN status" - $SPLUSR; else echo && "$SPLBIN" status;fi
         ;;
         splunkshcdeploy) # splunk> SH cluster deploy configuration bundle
-        [ ! "$ID" == "$SPLUSR" ] && echo -e "... will drop privileges to user <$SPLUSR>\n"
+        echo -e "Here is the status and IPs of your cluster:\n" 
+        if [ ! "$ID" == "$SPLUSR" ];then
+            echo -e "... will drop privileges to user <$SPLUSR>\n"
+            su -c "$SPLBIN list shcluster-members" - $SPLUSR |grep -Ei "(host_port_pair|status)" |cut -d":" -f2
+        else
+            $SPLBIN list shcluster-members |grep -Ei "(host_port_pair|status)" |cut -d":" -f2
+        fi
+        
         if [ -z "$SHCMEMB" ];then
             while [ -z "$SHCMEMB" ];do
                 echo -e "\nHint: SHCMEMB variable is not defined in $BIN\nIf you like you can predefine a cluster member but it is recommended to define it manually here.\n"
