@@ -1,7 +1,0 @@
-# doing the iozone stuff
-F_IOZONE(){
-    # iozone is mentioned at:
-    # http://docs.splunk.com/Documentation/PCI/2.1.1/Install/Troubleshooting#Measuring_system_performance
-    # cmd: iozone -s 4g -r 2k -r 4k -r 8k -r 16k -r 32k -O -b results.xls
-echo iozone
-}
