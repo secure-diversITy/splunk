@@ -89,25 +89,27 @@ case $BIN in
 	# this way I ensure that even when the user id was not catched correctly that 
 	# this will not destroy the splunk> dirs..!
         splunk) # a simple wrapper with all given arguments
-		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN $@" - $SPLUSR; else "$SPLBIN" "$@";fi
+        # workaround for DAMN $@ handling in bash when fwd them to su
+        for i in "$@";do ARGS="$ARGS $i";done
+		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n... splunk arguments: $ARGS\n" && su -c "$SPLBIN $ARGS" - $SPLUSR; else echo && "$SPLBIN" "$@";fi
         ;;
         splunkstop) # stop splunk>
-		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN stop" - $SPLUSR; else "$SPLBIN" stop;fi
+		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN stop" - $SPLUSR; else echo && "$SPLBIN" stop;fi
         ;;
         splunkstart) # start splunk>
-		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN start" - $SPLUSR; else "$SPLBIN" start ;fi
+		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN start" - $SPLUSR; else echo && "$SPLBIN" start ;fi
         ;;
         splunkrestart) # restart splunk>
-		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN restart" - $SPLUSR; else "$SPLBIN" restart;fi
+		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN restart" - $SPLUSR; else echo && "$SPLBIN" restart;fi
         ;;
         splunkwebrestart) # restart splunk> web
-		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN restartss" - $SPLUSR; else "$SPLBIN" restartss;fi
+		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN restartss" - $SPLUSR; else echo && "$SPLBIN" restartss;fi
         ;;
         splunkdebug) # use splunk> btool debug
-		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN btool --debug check" - $SPLUSR; else "$SPLBIN" btool --debug check;fi
+		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN btool --debug check" - $SPLUSR; else echo && "$SPLBIN" btool --debug check;fi
         ;;
         splunkstatus) # splunk> status
-		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN status" - $SPLUSR; else "$SPLBIN" status;fi
+		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN status" - $SPLUSR; else echo && "$SPLBIN" status;fi
         ;;
         splunkshcdeploy) # splunk> SH cluster deploy configuration bundle
         [ ! "$ID" == "$SPLUSR" ] && echo -e "... will drop privileges to user <$SPLUSR>\n"
