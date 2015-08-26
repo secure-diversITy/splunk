@@ -112,10 +112,12 @@ case $BIN in
 		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN status" - $SPLUSR; else echo && "$SPLBIN" status;fi
         ;;
         splunkshcdeploy) # splunk> SH cluster deploy configuration bundle
-        echo -e "Here is the status and IPs of your cluster:\n" 
         if [ ! "$ID" == "$SPLUSR" ];then
-            echo -e "... will drop privileges to user <$SPLUSR>\n"
+            echo -e "... dropping privileges to user <$SPLUSR>\n"
+            echo -e "... trying to get status and IPs of your SH cluster:" 
             su -c "$SPLBIN list shcluster-members" - $SPLUSR |grep -Ei "(host_port_pair|status)" |cut -d":" -f2
+            SERR=$?
+            if [ $SERR -ne 0 ];then echo -e "\n\tWarning: cannot detect SH cluster info.\nYou need to find out an active cluster member manually.\nTo catch that automatically execute $BIN on a SH cluster member\n" ;fi
         else
             $SPLBIN list shcluster-members |grep -Ei "(host_port_pair|status)" |cut -d":" -f2
         fi

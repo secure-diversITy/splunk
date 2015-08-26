@@ -35,7 +35,9 @@
        splunkstart             --      Starts splunk
        splunkstatus            --      Status of splunk and helper processes
        splunkshcdeploy         --      Deploy configuration bundle within a Search Head Cluster
-                                       It will ask you for a cluster member
+                                       It will ask you for a cluster member and if you execute it on a
+                                       SH cluster member server it will catch you the cluster members and
+                                       status for easy copy & paste
        splunkcmdeploy          --      Deploy configuration bundle within a cluster
                                        This will work on a Cluster Master (CM) only and this is checked
                                        first. If not executed on a CM it will abort.
