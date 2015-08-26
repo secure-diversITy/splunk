@@ -113,15 +113,15 @@ case $BIN in
         ;;
         splunkshcdeploy) # splunk> SH cluster deploy configuration bundle
         if [ ! "$ID" == "$SPLUSR" ];then
-            echo -e "... dropping privileges to user <$SPLUSR>\n"
+            echo -e "... dropping privileges to user <$SPLUSR>"
             echo -e "... trying to get status and IPs of your SH cluster:" 
             su -c "$SPLBIN list shcluster-members" - $SPLUSR |grep -Ei "(host_port_pair|status)" |cut -d":" -f2
-            SERR=$?
-            if [ $SERR -ne 0 ];then echo -e "\n\tWarning: cannot detect SH cluster info.\nYou need to find out an active cluster member manually.\nTo catch that automatically execute $BIN on a SH cluster member\n" ;fi
         else
             $SPLBIN list shcluster-members |grep -Ei "(host_port_pair|status)" |cut -d":" -f2
         fi
-        
+        SERR=$?
+        if [ $SERR -ne 0 ];then echo -e "\n\tWarning: cannot detect SH cluster info.\nYou need to find out an active cluster member manually.\nTo catch that automatically execute $BIN on a SH cluster member\n" ;fi
+            
         if [ -z "$SHCMEMB" ];then
             while [ -z "$SHCMEMB" ];do
                 echo -e "\nHint: SHCMEMB variable is not defined in $BIN\nIf you like you can predefine a cluster member but it is recommended to define it manually here.\n"
