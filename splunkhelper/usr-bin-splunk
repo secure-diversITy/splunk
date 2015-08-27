@@ -54,7 +54,6 @@ echo -e "\n... execution command was <$BIN>\n... executed as user <$ID>\n"
 # usage info
 F_HELP(){
     echo '
-    
     USAGE INFO
     ***************************************************************************************************
     
@@ -91,6 +90,7 @@ F_HELP(){
        splunkclustershowbundle --      Shows the current status of cluster bundle config
                                        (real exec: "show cluster-bundle-status")
                                        --> This will work on a Cluster Master (CM) only (will abort if not on CM)
+
     '
 }
 
