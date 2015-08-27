@@ -55,9 +55,13 @@ echo -e "\n... execution command was <$BIN>\n... executed as user <$ID>\n"
 F_HELP(){
     echo '
     
-    ERROR: Unknown command specified!
+    USAGE INFO
+    ***************************************************************************************************
     
-    ## Valid Command shortcuts:
+    HINT:
+    If you want help for the REAL splunk command execute "splunk help" instead!
+    
+    ## Valid command shortcuts:
 
        splunk                  --      Provides direct access to splunk binary
                                        (real exec: like "/opt/splunk/bin/splunk" )
