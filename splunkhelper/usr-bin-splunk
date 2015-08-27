@@ -19,7 +19,7 @@
 #
 #########################################################################################
 #
-# Last changed: 2015-08-25
+# Last changed: 2015-08-27
 #
 #########################################################################################
 
@@ -36,6 +36,7 @@ SHCPORT=8089                    # Management port of your SH cluster members (no
 
 
 # system vars:
+SUBIN=/bin/su                   # full path to su binary
 SUPPVER=620                     # The supported and tested splunk> version. It may or may not work with older versions
 SPLBIN="$SPLDIR/bin/splunk"	    # the generated full path to splunk binary
 ID=$(id -un) 			        # get the effective - not real user name
@@ -81,6 +82,21 @@ F_VERSION(){
 # this will move later to the special commands where we need this
 F_VERSION
 
+# checking if we're running on a CM (when needed) and hard exit if not!
+F_CHECKCM(){
+    if [ ! "$ID" == "$SPLUSR" ];then
+        echo -e "... dropping privileges to user <$SPLUSR> to get cluster-info\n"
+        $SUBIN -c "$SPLBIN list master-info" - $SPLUSR > /dev/null
+        MERR=$?
+        if [ $MERR -ne 0 ];then echo -e "\n\tERROR: This command can be executed on a Cluster Master only!\n" && exit $MERR ;fi
+    else
+        echo
+        "$SPLBIN" list master-info > /dev/null
+         MERR=$?
+         if [ $MERR -ne 0 ];then echo -e "\n\tERROR: This command can be executed on a Cluster Master only!\n" && exit $MERR ;fi
+    fi
+}
+
 # and act accordingly:
 case $BIN in
 	# just a site note: I check for the splunk user and not for root here. Why?
@@ -91,31 +107,31 @@ case $BIN in
         splunk) # a simple wrapper with all given arguments
         # workaround for DAMN $@ handling in bash when fwd them to su
         for i in "$@";do ARGS="$ARGS $i";done
-		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n... splunk arguments: $ARGS\n" && su -c "$SPLBIN $ARGS" - $SPLUSR; else echo && "$SPLBIN" "$@";fi
+		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n... splunk arguments: $ARGS\n" && $SUBIN -c "$SPLBIN $ARGS" - $SPLUSR; else echo && "$SPLBIN" "$@";fi
         ;;
         splunkstop) # stop splunk>
-		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN stop" - $SPLUSR; else echo && "$SPLBIN" stop;fi
+		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN stop" - $SPLUSR; else echo && "$SPLBIN" stop;fi
         ;;
         splunkstart) # start splunk>
-		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN start" - $SPLUSR; else echo && "$SPLBIN" start ;fi
+		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN start" - $SPLUSR; else echo && "$SPLBIN" start ;fi
         ;;
         splunkrestart) # restart splunk>
-		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN restart" - $SPLUSR; else echo && "$SPLBIN" restart;fi
+		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN restart" - $SPLUSR; else echo && "$SPLBIN" restart;fi
         ;;
         splunkwebrestart) # restart splunk> web
-		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN restartss" - $SPLUSR; else echo && "$SPLBIN" restartss;fi
+		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN restartss" - $SPLUSR; else echo && "$SPLBIN" restartss;fi
         ;;
         splunkdebug) # use splunk> btool debug
-		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN btool --debug check" - $SPLUSR; else echo && "$SPLBIN" btool --debug check;fi
+		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN btool --debug check" - $SPLUSR; else echo && "$SPLBIN" btool --debug check;fi
         ;;
         splunkstatus) # splunk> status
-		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN status" - $SPLUSR; else echo && "$SPLBIN" status;fi
+		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN status" - $SPLUSR; else echo && "$SPLBIN" status;fi
         ;;
-        splunkshcdeploy) # splunk> SH cluster deploy configuration bundle
+        splunkshcdeploy|splunkshcapply) # splunk> SH cluster deploy configuration bundle
         if [ ! "$ID" == "$SPLUSR" ];then
             echo -e "... dropping privileges to user <$SPLUSR>"
             echo -e "... trying to get status and IPs of your SH cluster:" 
-            su -c "$SPLBIN list shcluster-members" - $SPLUSR |grep -Ei "(host_port_pair|status)" |cut -d":" -f2
+            $SUBIN -c "$SPLBIN list shcluster-members" - $SPLUSR |grep -Ei "(host_port_pair|status)" |cut -d":" -f2
         else
             $SPLBIN list shcluster-members |grep -Ei "(host_port_pair|status)" |cut -d":" -f2
         fi
@@ -130,26 +146,45 @@ case $BIN in
         fi
         SHCURI="https://${SHCMEMB}:${SHCPORT}"
         if [ ! "$ID" == "$SPLUSR" ];then
-            echo -e "\n... now dropping privileges to user <$SPLUSR>\n" && su -c "$SPLBIN apply shcluster-bundle -target $SHCURI" - $SPLUSR
+            echo -e "\n... now dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN apply shcluster-bundle -target $SHCURI" - $SPLUSR
         else
             echo
             "$SPLBIN" apply shcluster-bundle -target "$SHCURI"
         fi
         ;;
-        splunkcmdeploy) # splunk> Index cluster deploy configuration bundle
+        splunkcmdeploy|splunkcmapply) # splunk> Index cluster deploy configuration bundle
+        # check if we're runnin on a CM first!
+        F_CHECKCM
         if [ ! "$ID" == "$SPLUSR" ];then
             echo -e "... dropping privileges to user <$SPLUSR>\n"
-            su -c "$SPLBIN list master-info" - $SPLUSR > /dev/null
-            MERR=$?
-            if [ $MERR -ne 0 ];then echo -e "\n\tERROR: This command can be executed on a Cluster Master only!\n" && exit $MERR ;fi
-            su -c "$SPLBIN apply cluster-bundle" - $SPLUSR
+            $SUBIN -c "$SPLBIN apply cluster-bundle" - $SPLUSR
         else
             echo
             "$SPLBIN" list master-info > /dev/null
-             MERR=$?
-             if [ $MERR -ne 0 ];then echo -e "\n\tERROR: This command can be executed on a Cluster Master only!\n" && exit $MERR ;fi
             "$SPLBIN" apply cluster-bundle
         fi
-        "$SPLBIN" show cluster-bundle-status
+        splunkclustershowbundle
+        ;;
+        splunkclustershow) # shows the cluster bundle status
+        # check if we're runnin on a CM first!
+        F_CHECKCM
+        if [ ! "$ID" == "$SPLUSR" ];then
+            echo -e "... dropping privileges to user <$SPLUSR>\n"
+            $SUBIN -c "$SPLBIN show cluster-status" - $SPLUSR
+        else
+            echo
+            "$SPLBIN" show cluster-status
+        fi        
+        ;;
+        splunkclustershowbundle) # shows the cluster bundle status
+        # check if we're runnin on a CM first!
+        F_CHECKCM
+        if [ ! "$ID" == "$SPLUSR" ];then
+            echo -e "... dropping privileges to user <$SPLUSR>\n"
+            $SUBIN -c "$SPLBIN show cluster-bundle-status" - $SPLUSR
+        else
+            echo
+            "$SPLBIN" show cluster-bundle-status
+        fi        
         ;;
 esac
