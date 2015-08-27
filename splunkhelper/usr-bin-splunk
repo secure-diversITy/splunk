@@ -150,5 +150,6 @@ case $BIN in
              if [ $MERR -ne 0 ];then echo -e "\n\tERROR: This command can be executed on a Cluster Master only!\n" && exit $MERR ;fi
             "$SPLBIN" apply cluster-bundle
         fi
+        "$SPLBIN" show cluster-bundle-status
         ;;
 esac
