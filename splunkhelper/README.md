@@ -58,9 +58,8 @@
 
 ## Install:
 
-	1) move the script "usr-bin-splunk" to "/usr/bin" , name it "splunk" and make it executable to everyone but editable for root only!
+	1) move the script "usr-bin-splunk" to "/usr/bin" , name it "splunk" and make it executable to everyone!
 		#> mv /tmp/usr-bin-splunk /usr/bin/splunk
-		#> chown root.root /usr/bin/splunk
         #> chmod 755 /usr/bin/splunk
 		
 	2) check the user vars within this script >SPLUSR< and >SPLDIR< to match your setup!!!
