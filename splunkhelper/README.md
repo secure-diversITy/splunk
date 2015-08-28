@@ -28,25 +28,57 @@
 ## Command shortcuts:
 
        splunk                  --      Provides direct access to splunk binary
+                                       (real exec: like "/opt/splunk/bin/splunk" )
        splunkrestart           --      Restarts splunk
+                                       (real exec: "restart")
        splunkwebrestart        --      Restarts splunk web interface
+                                       (real exec: "restartss")
        splunkdebug             --      Executes btool debug check
+                                       (real exec: "btool --debug check")
        splunkstop              --      Stops splunk
+                                       (real exec: "stop")       
        splunkstart             --      Starts splunk
+                                       (real exec: "start")       
        splunkstatus            --      Status of splunk and helper processes
+                                       (real exec: "status")
+       splunkshcapply|deploy   --      Apply/Deploy configuration bundle within a Search Head Cluster
+                                       (real exec: "apply shcluster-bundle -target xxxx")
+                                       It will ask you for a cluster member(!) and if you execute it on a
+                                       SH cluster member server it will catch the cluster members for you and their
+                                       status for easy copy & paste
+       splunkcmapply|deploy    --      Apply/Deploy configuration bundle within a cluster
+                                       (real exec: "apply cluster-bundle")
+                                       --> This will work on a Cluster Master (CM) only (will abort if not on CM)
+       splunkclustershow       --      Shows the current cluster status
+                                       (real exec: "show cluster-status")
+                                       --> This will work on a Cluster Master (CM) only (will abort if not on CM)       
+       splunkclustershowbundle --      Shows the current status of cluster bundle config
+                                       (real exec: "show cluster-bundle-status")
+                                       --> This will work on a Cluster Master (CM) only (will abort if not on CM)
 
 ## Install:
 
 	1) move the script "usr-bin-splunk" to "/usr/bin" , name it "splunk" and make it executable to everyone!
 		#> mv /tmp/usr-bin-splunk /usr/bin/splunk
-		#> chmod +x /usr/bin/splunk
+        #> chmod 755 /usr/bin/splunk
 		
 	2) check the user vars within this script >SPLUSR< and >SPLDIR< to match your setup!!!
 	   This is the MOST ESSENTIAL step. If you do a mistake here you will get messed up so check twice!
 	   
-	3) copy the following 1 liner (you may need to scroll to see it fully!) 
+	3) copy the following linker cmd (copy it fully and press ENTER) 
 	   and paste in the CLI as user >root< :
-	ln -s /usr/bin/splunk /usr/bin/splunkrestart;ln -s /usr/bin/splunk /usr/bin/splunkwebrestart;ln -s /usr/bin/splunk /usr/bin/splunkdebug;ln -s /usr/bin/splunk /usr/bin/splunkstop;ln -s /usr/bin/splunk /usr/bin/splunkstart;ln -s /usr/bin/splunk /usr/bin/splunkstatus
+       ln -s /usr/bin/splunk /usr/bin/splunkrestart; \
+       ln -s /usr/bin/splunk /usr/bin/splunkwebrestart; \
+       ln -s /usr/bin/splunk /usr/bin/splunkdebug;\
+       ln -s /usr/bin/splunk /usr/bin/splunkstop;\
+       ln -s /usr/bin/splunk /usr/bin/splunkstart;\
+       ln -s /usr/bin/splunk /usr/bin/splunkstatus;\
+       ln -s /usr/bin/splunk /usr/bin/splunkshcapply; \
+       ln -s /usr/bin/splunk /usr/bin/splunkshcdeploy; \
+       ln -s /usr/bin/splunk /usr/bin/splunkcmapply; \
+       ln -s /usr/bin/splunk /usr/bin/splunkcmdeploy; \
+       ln -s /usr/bin/splunk /usr/bin/splunkclustershow; \
+       ln -s /usr/bin/splunk /usr/bin/splunkclustershowbundle
 	
 	4) test it by going away from /usr/bin and type "splunk status" (or "splunkstatus") as user >root<
 	   it should look similar to this:
