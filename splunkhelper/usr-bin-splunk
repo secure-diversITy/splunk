@@ -51,6 +51,9 @@ if [ "$ID" != "root" ]&&[ "$ID" != "$SPLUSR" ];then
         exit 3
 fi
 
+# ensure splunk is installed!
+[ ! -x "$SPLBIN" ]&& echo -e "\n\t$SPLBIN missing!! Is splunk> installed? ABORTED.\n\n" && exit 2
+
 # see how we get called:
 BIN=${0##*/}
 echo -e "\n... execution command was <$BIN>\n... executed as user <$ID>\n"
