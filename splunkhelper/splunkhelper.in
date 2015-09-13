@@ -76,7 +76,8 @@ F_HELP(){
     $> splunkrestart                Restarts splunk
                                     (real exec: "restart")
                                         
-    $> splunkwebrestart             Restarts splunk web interface
+    $> splunkwebrestart             Restarts splunk web interface (no effect since splunk> v6.2 because it is no separate
+                                    daemon anymore... If you want to restart the web in >=6.2 use splunk restart instead)
                                     (real exec: "restartss")
                                         
     $> splunkdebug                   Executes btool debug check
