@@ -112,7 +112,25 @@ F_HELP(){
     $> splunkclustershowbundle      Shows the current status of cluster bundle config
                                     (real exec: "show cluster-bundle-status")
                                     --> This will work on a Cluster Master (CM) only (will abort if not on CM)
+                                        
+    $> splunkclusterlistpeers       Shows the peers status connected to an index cluster
+                                    (real exec: "list cluster-peers")
+                                    --> This will work on a Cluster Master (CM) only (will abort if not on CM)
 
+    $> splunkdsreload               Reloads the deploymentservers classes to deploy changes if needed.
+                                    (real exec: "reload deploy-server")
+                                    --> This will work on a Deployment Server (DS) only (will abort if not on DS)
+    
+    General commands (not directly splunk> related):
+    ****************************************************************************************************************    
+    $> splunkexchange               Requires python installed.
+                                    Starts a simple python http server in the CURRENT directory. You can specify
+                                    a tcp port - if not: default is 8888.
+                                    Example: splunkexchange 9999 will start a webserver in the current directory
+                                    on port 9999. If your hostname is "foo" you can then download all files of
+                                    that directory by pointing to http://foo:9999/
+                                    Really helpful when deploying things..
+                                    (real exec: "python -m SimpleHTTPServer <PORT>")
     '
 }
 
@@ -168,6 +186,17 @@ F_CHECKCM(){
          MERR=$?
          if [ $MERR -ne 0 ];then echo -e "\n\tERROR: This command can be executed on a Cluster Master only!\n" && exit $MERR ;fi
     fi
+}
+
+# checking if we're running on a DS (when needed) and hard exit if not!
+F_CHECKDS(){
+    # basic check cause there is no splunk related command other then "list deploy-clients" but that
+    # has no valid exitcode. Well we could parse the output but if that changes.. and it will tell only
+    # that clients had connected but not if we have a config here. So we check if there is at least one
+    # stanza defined in the serverclass.conf:
+    grep -e "^\[" $SPLDIR/etc/system/local/serverclass.conf > /dev/null
+    MERR=$?
+    if [ $MERR -ne 0 ];then echo -e "\n\tERROR: This command can be executed on a Deployment Server only!\n\tserverclass.conf has no valid stanza so I believe it is not a active deployment server.\n\tOnce you have configured a serverclass this command will work.\n\n\tABORTED\n\n" && exit $MERR ;fi
 }
 
 # and act accordingly:
@@ -259,6 +288,32 @@ case $BIN in
             echo
             "$SPLBIN" show cluster-bundle-status
         fi        
+        ;;
+        splunkclusterlistpeers) # shows the cluster peers status
+        # check if we're runnin on a CM first!
+        F_CHECKCM
+        if [ ! "$ID" == "$SPLUSR" ];then
+            echo -e "... dropping privileges to user <$SPLUSR>\n"
+            $SUBIN -c "$SPLBIN list cluster-peers" - $SPLUSR
+        else
+            echo
+            "$SPLBIN" show list cluster-peers
+        fi        
+        ;;
+        splunkdsreload) # reload DS classes
+        # check if we're runnin on a DS first!
+        F_CHECKDS
+        if [ ! "$ID" == "$SPLUSR" ];then
+            echo -e "... dropping privileges to user <$SPLUSR>\n"
+            $SUBIN -c "$SPLBIN reload deploy-server" - $SPLUSR
+        else
+            echo
+            "$SPLBIN" reload deploy-server
+        fi        
+        ;;
+        splunkexchange) # starts a simple python webserver for file exchange
+        if [ -z "$1" ];then HPORT=8888; else HPORT="$1"; fi
+        python -m SimpleHTTPServer $HPORT
         ;;
         *) # catch the rest
         F_HELP
