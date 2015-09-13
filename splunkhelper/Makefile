@@ -19,7 +19,7 @@ LINKS = "splunkrestart \
 		splunkexchange"
 
 install:
-		@install -o ${USER} -g ${GROUP} -m 0755 usr-bin-splunk ${BINFIX}/splunk
+		@install -o ${USER} -g ${GROUP} -m 0755 splunkhelper.in ${BINFIX}/splunk
 		for L in "${LINKS}";do \
 				ln -sfv ${BINFIX}/splunk ${BINFIX}/$$L ; \
 		done
