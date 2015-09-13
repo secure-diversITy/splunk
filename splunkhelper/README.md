@@ -18,6 +18,9 @@
 
 ## Usage:
 
+   Use "splunk -h | --help" at anytime to get usage info for the splunkhelper!
+   Use "splunk help" to get the normal splunk help info!
+   
    You have to install this script in /usr/bin and name it "splunk" (see "Install"). That way wherever
    you are you can simply type "splunk" or one of the shortcut commands and don't need to care
    about using the correct user.
@@ -27,60 +30,106 @@
 
 ## Command shortcuts:
 
-       splunk                  --      Provides direct access to splunk binary
-                                       (real exec: like "/opt/splunk/bin/splunk" )
-       splunkrestart           --      Restarts splunk
-                                       (real exec: "restart")
-       splunkwebrestart        --      Restarts splunk web interface
-                                       (real exec: "restartss")
-       splunkdebug             --      Executes btool debug check
-                                       (real exec: "btool --debug check")
-       splunkstop              --      Stops splunk
-                                       (real exec: "stop")       
-       splunkstart             --      Starts splunk
-                                       (real exec: "start")       
-       splunkstatus            --      Status of splunk and helper processes
-                                       (real exec: "status")
-       splunkshcapply|deploy   --      Apply/Deploy configuration bundle within a Search Head Cluster
-                                       (real exec: "apply shcluster-bundle -target xxxx")
-                                       It will ask you for a cluster member(!) and if you execute it on a
-                                       SH cluster member server it will catch the cluster members for you and their
-                                       status for easy copy & paste
-       splunkcmapply|deploy    --      Apply/Deploy configuration bundle within a cluster
-                                       (real exec: "apply cluster-bundle")
-                                       --> This will work on a Cluster Master (CM) only (will abort if not on CM)
-       splunkclustershow       --      Shows the current cluster status
-                                       (real exec: "show cluster-status")
-                                       --> This will work on a Cluster Master (CM) only (will abort if not on CM)       
-       splunkclustershowbundle --      Shows the current status of cluster bundle config
-                                       (real exec: "show cluster-bundle-status")
-                                       --> This will work on a Cluster Master (CM) only (will abort if not on CM)
+    Non specific splunk> commands (executable on every server type):
+    ****************************************************************************************************************
+    $> splunk                       Provides direct access to splunk binary but with the powers of splunkhelper!
+                                    (real exec: like "/opt/splunk/bin/splunk" )
+                                        
+    $> splunkrestart                Restarts splunk
+                                    (real exec: "restart")
+                                        
+    $> splunkwebrestart             Restarts splunk web interface
+                                    (real exec: "restartss")
+                                        
+    $> splunkdebug                   Executes btool debug check
+                                    (real exec: "btool --debug check")
+                                        
+    $> splunkstop                   Stops splunk
+                                    (real exec: "stop")
+                                        
+    $> splunkstart                  Starts splunk
+                                    (real exec: "start")
+                                        
+    $> splunkstatus                 Status of splunk and helper processes
+                                    (real exec: "status")
 
-## Install:
+    $> splunkshcapply               Apply/Deploy configuration bundle within a Search Head Cluster
+        |splunkshcdeploy            (real exec: "apply shcluster-bundle -target xxxx")
+                                    You can execute this on the Deployer or on every other splunk> instance because
+                                    it will ask you for a cluster member(!).
+                                    If you execute it on a SH cluster member server it will catch the cluster members
+                                    for you and their status for easy copy & paste                               
 
-	1) move the script "usr-bin-splunk" to "/usr/bin" , name it "splunk" and make it executable to everyone!
-		#> mv /tmp/usr-bin-splunk /usr/bin/splunk
-        #> chmod 755 /usr/bin/splunk
+                                        
+    Specific commands (executable on specific server types only):
+    ****************************************************************************************************************
+    $> splunkcmapply                Apply/Deploy configuration bundle within a index cluster
+        |splunkcmdeploy             (real exec: "apply cluster-bundle")
+                                    --> This will work on a Cluster Master (CM) only (will abort if not on CM)
+                                        
+    $> splunkclustershow            Shows the current cluster status
+                                    (real exec: "show cluster-status")
+                                    --> This will work on a Cluster Master (CM) only (will abort if not on CM)
+                                        
+    $> splunkclustershowbundle      Shows the current status of cluster bundle config
+                                    (real exec: "show cluster-bundle-status")
+                                    --> This will work on a Cluster Master (CM) only (will abort if not on CM)
+                                        
+    $> splunkclusterlistpeers       Shows the peers status connected to an index cluster
+                                    (real exec: "list cluster-peers")
+                                    --> This will work on a Cluster Master (CM) only (will abort if not on CM)
+
+    $> splunkdsreload               Reloads the deploymentservers classes to deploy changes if needed.
+                                    (real exec: "reload deploy-server")
+                                    --> This will work on a Deployment Server (DS) only (will abort if not on DS)
+    
+    General commands (not directly splunk> related):
+    ****************************************************************************************************************    
+    $> splunkexchange               Requires python installed.
+                                    Starts a simple python http server in the CURRENT directory. You can specify
+                                    a tcp port - if not: default is 8888.
+                                    Example: splunkexchange 9999 will start a webserver in the current directory
+                                    on port 9999. If your hostname is "foo" you can then download all files of
+                                    that directory by pointing to http://foo:9999/
+                                    Really helpful when deploying things..
+                                    (real exec: "python -m SimpleHTTPServer <PORT>")
+
+
+## Installation (the EASY bulletproof way):
+    1) as root or while using sudo:
+        #> make install
+    
+    2) check the user vars within /usr/local/bin/splunk:
+        --> >SPLUSR< and >SPLDIR< have to match your setup!!!
+        This is the MOST ESSENTIAL step.
+        If you skip that or do a mistake here you will get messed up
+        so check twice!
+        
+    3) go on with "Testing your setup"
+
+## Installation (manually - not recommended):
+
+	1) move the script "splunkhelper.in" to "/usr/local/bin" , name it "splunk" and make it executable to everyone!
+		#> mv /tmp/splunkhelper.in /usr/local/bin/splunk
+        #> chmod 755 /usr/local/bin/splunk
 		
-	2) check the user vars within this script >SPLUSR< and >SPLDIR< to match your setup!!!
-	   This is the MOST ESSENTIAL step. If you do a mistake here you will get messed up so check twice!
+    2) check the user vars within /usr/local/bin/splunk:
+        --> >SPLUSR< and >SPLDIR< have to match your setup!!!
+        This is the MOST ESSENTIAL step.
+        If you skip that or do a mistake here you will get messed up
+        so check twice!
 	   
-	3) copy the following linker cmd (copy it fully and press ENTER) 
-	   and paste in the CLI as user >root< :
-       ln -s /usr/bin/splunk /usr/bin/splunkrestart; \
-       ln -s /usr/bin/splunk /usr/bin/splunkwebrestart; \
-       ln -s /usr/bin/splunk /usr/bin/splunkdebug;\
-       ln -s /usr/bin/splunk /usr/bin/splunkstop;\
-       ln -s /usr/bin/splunk /usr/bin/splunkstart;\
-       ln -s /usr/bin/splunk /usr/bin/splunkstatus;\
-       ln -s /usr/bin/splunk /usr/bin/splunkshcapply; \
-       ln -s /usr/bin/splunk /usr/bin/splunkshcdeploy; \
-       ln -s /usr/bin/splunk /usr/bin/splunkcmapply; \
-       ln -s /usr/bin/splunk /usr/bin/splunkcmdeploy; \
-       ln -s /usr/bin/splunk /usr/bin/splunkclustershow; \
-       ln -s /usr/bin/splunk /usr/bin/splunkclustershowbundle
-	
-	4) test it by going away from /usr/bin and type "splunk status" (or "splunkstatus") as user >root<
+	3) then you need to link manually all helper commands:
+        open the Makefile and check the Variable "LINKS".
+        for each command you need to do:
+        #> ln -s /usr/local/bin/splunk /usr/local/bin/<THENAMEFROMLINKS>
+        As this makes no fun switch better to the EASY method described above.
+
+    4) go on with "Testing your setup"
+
+## Testing your setup:
+
+	1) test it by going away from /usr/local/bin and type "splunk status" (or "splunkstatus") as user >root<
 	   it should look similar to this:
 		... execution command was <splunk>
 		... executed as user <root>
@@ -88,34 +137,38 @@
 		splunkd is running (PID: 6535).
 		splunk helpers are running (PIDs: 6536 6547 6879 7061).
 		
-	5) type "splunk status" (or "splunkstatus") as user <splunk> (the one you defined as SPLUSR)
+	2) type "splunk status" (or "splunkstatus") as user <splunk> (the one you defined as SPLUSR)
 	   it should look similar to this (no "dropping privileges" because executed by the SPLUSR):
 		... execution command was <splunk>
 		... executed as user <splunk>
 		splunkd is running (PID: 6535).
 		splunk helpers are running (PIDs: 6536 6547 6879 7061).
 		
-	6) you should check the output carefully once that everything goes well but then
+	3) you should check the output carefully once that everything goes well but then
 	   you never need to care about again ;)
-       
-    7) Automatic splunk> start by init.d: You need to enable the init.d script *without* the splunkhelper cmds and as user <root>:
+
+## Automatic splunk> startup when booting:
+
+    1) if you already have the init.d script installed skip this step and go to step 2.
+       Automatic splunk> start by init.d: You need to enable the init.d script *without* the splunkhelper cmds and as user <root>:
             #> /opt/splunk/bin/splunk enable boot-start -user splunk
             (where "/opt/splunk/" is your splunk installation path)
        
-       Afterwards open the init.d script and change all occurences of the path:
+    2)   Afterwards open the init.d script and change all occurences of the path:
             #> vim /etc/init.d/splunk
-            /opt/splunk/ --> /usr/
+            /opt/splunk/ --> /usr/local/
             e.g.:
-            "/opt/splunk/bin/splunk" start ..... --> "/usr/bin/splunk" start ...
-            or use sed:
-            #> sed -i s#/opt/splunk/bin#/usr/bin#g /etc/init.d/splunk
+            "/opt/splunk/bin/splunk" start ..... --> "/usr/local/bin/splunk" start ...
+            
+            or more easily use this single sed line:
+            #> sed -i s#/opt/splunk/bin#/usr/local/bin#g /etc/init.d/splunk
     
-    8) if splunk version >= 6.1.1: Set/Check the fallback splunk user variable:
+    3) if splunk version >= 6.1.1: Set/Check the fallback splunk user variable:
             (splunk)$> vim /opt/splunk/etc/splunk-launch.conf
             
             SPLUNK_OS_USER=splunk (where "splunk" is your splunk username)
             
-        That variable should be set already correctly by step 7 but checking it doesn't hurt right?!
-        If that variable is set and you forget step 7 or overwrite the init.d script by accident
+        That variable should be set already correctly by step 1 but checking it doesn't hurt right?!
+        If that variable is set and you forget step 2 or overwrite the init.d script by accident
         it will not destroy anything 'cause of this variable here.
         
