@@ -18,15 +18,14 @@
 
 ## Usage:
 
-   Use "splunk -h | --help" at anytime to get usage info for the splunkhelper!
-   Use "splunk help" to get the normal splunk help info!
+   Use **"splunk -h | --help"** at anytime to get usage info for the splunkhelper!
    
-   You have to install this script in /usr/bin and name it "splunk" (see "Install"). That way wherever
-   you are you can simply type "splunk" or one of the shortcut commands and don't need to care
-   about using the correct user.
+   Use **"splunk help"** to get the normal splunk help info!
 
-- "splunk" can use all arguments like with /opt/splunk/bin/splunk
-- execute one of the shortcut commands to do a quick action as explained in the next chapter
+   Simply use **"splunk"** and you can use **all** arguments like with /opt/splunk/bin/splunk (!!) but with the powers
+   of splunkhelper!
+   
+   Execute one of the following shortcut commands to do a quick action.
 
 ## Command shortcuts:
 
@@ -105,7 +104,7 @@
         If you skip that or do a mistake here you will get messed up
         so check twice!
         
-    3) go on with "Testing your setup"
+    3) go on with "Testing your setup" and do not forget the last chapter about "Automatic splunk> startup"!
 
 ## Installation (manually - not recommended):
 
@@ -125,22 +124,22 @@
         #> ln -s /usr/local/bin/splunk /usr/local/bin/<THENAMEFROMLINKS>
         As this makes no fun switch better to the EASY method described above.
 
-    4) go on with "Testing your setup"
+    3) go on with "Testing your setup" and do not forget the last chapter about "Automatic splunk> startup"!
 
 ## Testing your setup:
 
 	1) test it by going away from /usr/local/bin and type "splunk status" (or "splunkstatus") as user >root<
 	   it should look similar to this:
 		... execution command was <splunk>
-		... executed as user <root>
-		... dropping privileges to user <splunk>
+		... executed as user **<root>**
+		... dropping privileges to user **<splunk>**
 		splunkd is running (PID: 6535).
 		splunk helpers are running (PIDs: 6536 6547 6879 7061).
 		
 	2) type "splunk status" (or "splunkstatus") as user <splunk> (the one you defined as SPLUSR)
 	   it should look similar to this (no "dropping privileges" because executed by the SPLUSR):
 		... execution command was <splunk>
-		... executed as user <splunk>
+		... executed as user **<splunk>**
 		splunkd is running (PID: 6535).
 		splunk helpers are running (PIDs: 6536 6547 6879 7061).
 		
