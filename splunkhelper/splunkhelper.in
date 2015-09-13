@@ -313,7 +313,9 @@ case $BIN in
         ;;
         splunkexchange) # starts a simple python webserver for file exchange
         if [ -z "$1" ];then HPORT=8888; else HPORT="$1"; fi
-        python -m SimpleHTTPServer $HPORT
+        echo -e "... exchanging files in path: <$(pwd)>"
+        echo -e "... starting HTTP server on port <$HPORT>.\n\n\t--> Connect to http://$(hostname):$HPORT/ to view and download files.\n\n\t** Use CTRL+C to stop the file exchange **\n"
+        python -m SimpleHTTPServer $HPORT > /dev/null
         ;;
         *) # catch the rest
         F_HELP
