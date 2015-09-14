@@ -178,8 +178,8 @@ F_VERSION
 
 # end a command SILENTLY after given timeout:
 F_TIMEDCMD(){
-    CMD="$1"
-    perl -e 'alarm shift ; exec @ARGV' -- "$CMD"
+    perl -e 'alarm shift ; exec @ARGV' -- "$@"
+    return $?
 } >/dev/null 2>&1
 
 # checking if we're running on a CM (when needed) and hard exit if not!
@@ -324,8 +324,12 @@ case $BIN in
         if [ -z "$1" ];then HPORT=8888; else HPORT="$1"; fi
         echo -e "... exchanging files in path: <$(pwd)>"
         echo -e "... starting HTTP server on port <$HPORT>.\n\n\t--> Connect to http://$(hostname):$HPORT/ to view and download files.\n\n\t** Use CTRL+C to stop the file exchange **\n"
-        F_TIMEDCMD "python -m SimpleHTTPServer $HPORT"
-        echo -e "... exchanging files in path: <$(pwd)> ended automatically due to security reasons after $HTTPTIMER seconds."
+        F_TIMEDCMD "$HTTPTIMER" "python -m SimpleHTTPServer $HPORT"
+        if [ $? -eq 142 ];then
+            echo -e "... exchanging files in path: <$(pwd)> ended automatically due to security reasons after $HTTPTIMER seconds.\n"
+        else
+            echo -e "... exchanging files in path: <$(pwd)> ended by user request.\n"
+        fi
         ;;
         *) # catch the rest
         F_HELP
