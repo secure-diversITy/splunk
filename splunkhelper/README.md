@@ -84,9 +84,10 @@
     
     General commands (not directly splunk> related):
     ****************************************************************************************************************    
-    $> splunkexchange               Requires python installed.
+    $> splunkexchange               Requires python (provides the server module) and perl (for the timeout).
                                     Starts a simple python http server in the CURRENT directory. You can specify
                                     a tcp port - if not: default is 8888.
+                                    **DUE TO SECURITY REASONS IT WILL STOP AFTER 300 SECONDS AUTOMATICALLY!**
                                     Example: splunkexchange 9999 will start a webserver in the current directory
                                     on port 9999. If your hostname is "foo" you can then download all files of
                                     that directory by pointing to http://foo:9999/
