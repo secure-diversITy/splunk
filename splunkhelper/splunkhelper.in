@@ -19,7 +19,7 @@
 #
 #########################################################################################
 #
-# Last changed: 2015-09-13
+# Last changed: 2015-09-14
 #
 #########################################################################################
 
@@ -28,6 +28,8 @@ SPLUSR="splunk"			        # the user splunk should run as
 SPLDIR="/opt/splunk"		    # splunk installation path
 FORCEOLD=                       # If you're using an older version than the supported one you can set
                                 # this variable to "y" and no warning message will appear anymore
+HTTPTIMER=300                   # the time in SECONDS the splunkexchange http server will run.
+                                # After this amount of time the http server will be shutdown automatically due to security reasons.
 
 # SH cluster configs (if you have one):
 SHCMEMB=                        # 1 SH cluster member for deploying the config bundle
@@ -124,9 +126,10 @@ F_HELP(){
     
     General commands (not directly splunk> related):
     ****************************************************************************************************************    
-    $> splunkexchange               Requires python installed.
+    $> splunkexchange               Requires python (provides the server module) and perl (for the timeout).
                                     Starts a simple python http server in the CURRENT directory. You can specify
                                     a tcp port - if not: default is 8888.
+                                    **DUE TO SECURITY REASONS IT WILL STOP AFTER '$HTTPTIMER' SECONDS AUTOMATICALLY!**
                                     Example: splunkexchange 9999 will start a webserver in the current directory
                                     on port 9999. If your hostname is "foo" you can then download all files of
                                     that directory by pointing to http://foo:9999/
@@ -173,6 +176,12 @@ F_VERSION(){
 
 # this will move later to the special commands where we need this
 F_VERSION
+
+# end a command SILENTLY after given timeout:
+F_TIMEDCMD(){
+    perl -e 'alarm shift ; exec @ARGV' -- "$@"
+    return $?
+} >/dev/null 2>&1
 
 # checking if we're running on a CM (when needed) and hard exit if not!
 F_CHECKCM(){
@@ -316,7 +325,12 @@ case $BIN in
         if [ -z "$1" ];then HPORT=8888; else HPORT="$1"; fi
         echo -e "... exchanging files in path: <$(pwd)>"
         echo -e "... starting HTTP server on port <$HPORT>.\n\n\t--> Connect to http://$(hostname):$HPORT/ to view and download files.\n\n\t** Use CTRL+C to stop the file exchange **\n"
-        python -m SimpleHTTPServer $HPORT > /dev/null
+        F_TIMEDCMD "$HTTPTIMER" "python -m SimpleHTTPServer $HPORT"
+        if [ $? -eq 142 ];then
+            echo -e "... exchanging files in path: <$(pwd)> ended automatically due to security reasons after $HTTPTIMER seconds.\n"
+        else
+            echo -e "\n... exchanging files in path: <$(pwd)> ended by user request.\n"
+        fi
         ;;
         *) # catch the rest
         F_HELP
