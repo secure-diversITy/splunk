@@ -19,7 +19,7 @@
 #
 #########################################################################################
 #
-# Last changed: 2015-09-14
+# Last changed: 2015-09-15
 #
 #########################################################################################
 
@@ -102,7 +102,7 @@ F_HELP(){
                                     for you and their status for easy copy & paste                               
 
                                         
-    Specific commands (executable on specific server types only):
+    Specific splunk> commands (executable on specific server types only):
     ****************************************************************************************************************
     $> splunkcmapply                Apply/Deploy configuration bundle within a index cluster
         |splunkcmdeploy             (real exec: "apply cluster-bundle")
@@ -324,7 +324,17 @@ case $BIN in
         splunkexchange) # starts a simple python webserver for file exchange
         if [ -z "$1" ];then HPORT=8888; else HPORT="$1"; fi
         echo -e "... exchanging files in path: <$(pwd)>"
-        echo -e "... starting HTTP server on port <$HPORT>.\n\n\t--> Connect to http://$(hostname):$HPORT/ to view and download files.\n\n\t** Use CTRL+C to stop the file exchange **\n"
+        echo -e "... starting HTTP server on port <$HPORT>."
+        TIMERSTART=$(date +%s)
+        TIMERSTARTHUMAN=$(date --date="@$TIMERSTART")        
+        echo -e "... exchange started: $TIMERSTARTHUMAN\n"
+        echo -e "\tfor your convenience here the exchangable files with wget prefixed:\n\t(connect to http://$(hostname):$HPORT/ to view subdirectories)\n"
+        find . -maxdepth 1 -type f  -exec echo -e "\twget http://$(hostname -f):$HPORT/{}" \;| sed 's#/\./#/#g'
+        TIMEREND=$(($TIMERSTART + $HTTPTIMER))
+        TIMERENDHUMAN=$(date --date="@$TIMEREND")
+        echo -e "\n\t** Use CTRL+C to stop the file exchange **\n"
+        echo -e "\t** EXCHANGE AUTOMATIC SHUTDOWN TIME: $TIMERENDHUMAN **"
+        echo -e "\t(timer is set to <$HTTPTIMER> seconds)\n"
         F_TIMEDCMD "$HTTPTIMER" "python -m SimpleHTTPServer $HPORT"
         if [ $? -eq 142 ];then
             echo -e "... exchanging files in path: <$(pwd)> ended automatically due to security reasons after $HTTPTIMER seconds.\n"

@@ -60,7 +60,7 @@
                                     for you and their status for easy copy & paste                               
 
                                         
-    Specific commands (executable on specific server types only):
+    Specific splunk> commands (executable on specific server types only):
     ****************************************************************************************************************
     $> splunkcmapply                Apply/Deploy configuration bundle within a index cluster
         |splunkcmdeploy             (real exec: "apply cluster-bundle")
