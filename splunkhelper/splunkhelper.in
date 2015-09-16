@@ -385,7 +385,7 @@ case $BIN in
             $SUBIN -c "$SPLBIN list cluster-peers" - $SPLUSR
         else
             echo
-            "$SPLBIN" show list cluster-peers
+            "$SPLBIN" list cluster-peers
         fi        
         ;;
         splunkdsreload) # reload DS classes
