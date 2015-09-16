@@ -29,6 +29,22 @@
 
 ## Command shortcuts:
 
+    -h | --help                     This help/usage info
+    --helperupdate                  Easy self-update the splunkhelper. Needs root permission.
+                                    You can specify an URL to the update ZIP - if you like. Otherwise the default update
+                                    URL is used. It will download the new version and install it automatically afterwards.
+                                    Defining an own update URL enables you deploy a new version of splunkhelper for your
+                                    internal network when not every server has access to the internet.
+                                    You can combine "splunkexchange" with "splunk --helperupdate <URL>". Nice isnt it? ;)
+                                    Example:
+                                    splunk> server "A" download a new splunkhelper version from git
+                                    and you want to deploy it on splunk> server B:
+                                    (A) --> $> cd /tmp
+                                    (A) --> $> wget https://github.com/xdajog/splunk/archive/master.zip
+                                    (A) --> $> splunkexchange 5555
+                                    as user "root" (otherwise you cannot install) on server B:
+                                    (B) --> #> splunk --helperupdate http://serverA:5555/master.zip
+
     Non specific splunk> commands (executable on every server type):
     ****************************************************************************************************************
     $> splunk                       Provides direct access to splunk binary but with the powers of splunkhelper!
@@ -96,6 +112,7 @@
 
 
 ## Installation (the EASY bulletproof way):
+
     1) as root or while using sudo:
         #> make install
     
@@ -172,3 +189,10 @@
         If that variable is set and you forget step 2 or overwrite the init.d script by accident
         it will not destroy anything 'cause of this variable here.
         
+## Updating (the EASY bulletproof way):
+
+    Once you have splunkhelper installed you can simply use the self-update function coming with splunkhelper!
+    
+    To do so simply execute **"splunk --helperupdate"** and you be done. You can do more stuff check them out with
+    **"splunk --help"**
+    

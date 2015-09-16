@@ -19,7 +19,7 @@
 #
 #########################################################################################
 #
-# Last changed: 2015-09-15
+# Last changed: 2015-09-16
 #
 #########################################################################################
 
@@ -36,16 +36,25 @@ SHCMEMB=                        # 1 SH cluster member for deploying the config b
                                 # You can leave this value empty (recommended) to ask for it
 SHCPORT=8089                    # Management port of your SH cluster members (normally 8089)
 
+# path to some binaries needed for splunkhelper update only
+# change them here if needed:
+WGETX=/usr/bin/wget             # wget binary to download the update
+MAKEX=/usr/bin/make             # make binary to install, uninstall, update
+LNX=/bin/ln                     # ln binary for linking the commands
+RMX=/bin/rm                     # rm binary to uninstall previous version
+UNZIPX=/usr/bin/unzip           # unzip binary to extract the downloaded version
 
 # NO CHANGES BEHIND THIS LINE !
 #################################################################################################################################
 
 # system vars (do not change!):
-SUBIN=/bin/su                   # full path to su binary
-SUPPVER=620                     # The supported and tested splunk> version. It may or may not work with older versions
-                                # Do NOT change that variable! If you have an older splunk version running adjust FORCEOLD above!
-SPLBIN="$SPLDIR/bin/splunk"	    # the generated full path to splunk binary
-ID=$(id -un) 			        # get the effective - not real user name
+SUBIN=/bin/su                       # full path to su binary
+SUPPVER=620                         # The supported and tested splunk> version. It may or may not work with older versions
+                                    # Do NOT change that variable! If you have an older splunk version running adjust FORCEOLD above!
+SPLBIN="$SPLDIR/bin/splunk"	        # the generated full path to splunk binary
+ID=$(id -un) 			            # get the effective - not real user name
+UPDTMP="/tmp/splunkhelperupdate"    # temporary path when updating splunkhelper 
+UDEFURL="https://github.com/xdajog/splunk/archive/master.zip"   # the default update URL
 
 # ensure we have root perms. we will drop privs when needed later.
 if [ "$ID" != "root" ]&&[ "$ID" != "$SPLUSR" ];then
@@ -66,6 +75,23 @@ F_HELP(){
     **************
     * USAGE INFO *
     **************
+    
+    -h | --help                     This help/usage info
+    --helperupdate                  Easy self-update the splunkhelper. Needs root permission.
+                                    You can specify an URL to the update ZIP - if you like. Otherwise the default update
+                                    URL is used. It will download the new version and install it automatically afterwards.
+                                    Defining an own update URL enables you deploy a new version of splunkhelper for your
+                                    internal network when not every server has access to the internet.
+                                    You can combine "splunkexchange" with "splunk --helperupdate <URL>". Nice isnt it? ;)
+                                    Example:
+                                    splunk> server "A" download a new splunkhelper version from git
+                                    and you want to deploy it on splunk> server B:
+                                    (A) --> $> cd /tmp
+                                    (A) --> $> wget https://github.com/xdajog/splunk/archive/master.zip
+                                    (A) --> $> splunkexchange 5555
+                                    as user "root" (otherwise you cannot install) on server B:
+                                    (B) --> #> splunk --helperupdate http://serverA:5555/master.zip
+                                    
     
     IMPORTANT HINT:
     If you want help for the REAL splunk command simply execute "splunk help" instead!
@@ -138,11 +164,63 @@ F_HELP(){
     '
 }
 
-# check if we may need help first
+# checking if we have all tools installed to update splunkhelper
+F_CHKUPDREQ(){
+    REQBINS="$WGETX $MAKEX $LNX $RMX $UNZIPX"
+    for req in $REQBINS;do
+        if [ -x "$req" ];then
+            echo "... $req found and is executable. fine."
+        else
+            echo -e "\n\tERROR: Missing a required binary: <$req>.\n\tInstall $req or correct path in $0 to reflect your installation.\n\tABORTED...\n"
+            exit 3
+        fi
+    done
+}   
+
+# the self-update magic
+F_HUPDATE(){
+    if [ -z "$2" ];then
+        UPDATEURL="$UDEFURL"
+    else
+        UPDATEURL="$2"
+    fi
+    UPDFILE="${UPDATEURL##*/}"
+    [ -z "$UPDFILE" ]&&echo -e "\n\tERROR: Cannot extract the file name from path <$UPDATEURL>. ABORTED.\n" && exit 3
+    if [ ! "$ID" == "root" ];then
+        echo -e "\n\tSelf-updating the splunkhelper needs root permission (you're $ID) so you either need to switch to user <root>"
+        echo -e "\tor start again with sudo (sudo splunk --helperupdate)\n"
+        exit
+    else
+        echo -e "... root permission available so we can proceed.."
+        [ -d $UPDTMP ]&& echo "... deleting old updater temp path" && rm -vrf $UPDTMP
+        mkdir $UPDTMP && cd $UPDTMP && $WGETX $UPDATEURL
+        if [ $? -eq 0 ];then
+            echo "... extracting $UPDFILE"
+            $UNZIPX $UPDFILE
+        else
+            echo -e "\n\tERROR: while downloading from <$UPDATEURL> or creating temp path <$UPDTMP>. ABORTED."
+            exit 3
+        fi
+        cd ./*/splunkhelper && make uninstall && make install
+        if [ $? -eq 0 ];then
+            echo -e "\nUpdate went fine. All done successful. ENJOY YOUR NEW VERSION OF SPLUNKHELPER :o)\n\n"
+        else
+            echo -e "\n\tERROR: while updating! Check above output for details."
+            exit 3
+        fi
+    fi
+    exit
+}
+
+# check if we may need help or update first
 case $1 in
     -h|--help)
     F_HELP
     exit
+    ;;
+    --helperupdate)
+    F_CHKUPDREQ
+    F_HUPDATE "$1"
     ;;
 esac
     
