@@ -179,10 +179,10 @@ F_CHKUPDREQ(){
 
 # the self-update magic
 F_HUPDATE(){
-    if [ -z "$2" ];then
+    if [ -z "$1" ];then
         UPDATEURL="$UDEFURL"
     else
-        UPDATEURL="$2"
+        UPDATEURL="$1"
     fi
     UPDFILE="${UPDATEURL##*/}"
     [ -z "$UPDFILE" ]&&echo -e "\n\tERROR: Cannot extract the file name from path <$UPDATEURL>. ABORTED.\n" && exit 3
@@ -220,7 +220,7 @@ case $1 in
     ;;
     --helperupdate)
     F_CHKUPDREQ
-    F_HUPDATE "$1"
+    F_HUPDATE "$2"
     ;;
 esac
     
