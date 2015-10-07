@@ -19,9 +19,25 @@
 #
 #########################################################################################
 #
-# Last changed: 2015-09-16
+# Last changed: 2015-10-07
 #
 #########################################################################################
+
+# user settings
+# create this file and add your changes there. That way updates will not overwrite your
+# personal settings:
+USERCONFIG=/etc/splunkhelper/config
+
+#################################################################################################################################
+# NO CHANGES BEHIND THIS LINE !
+# !! USE USERCONFIG FILE ABOVE TO CHANGE VARIABLES !!
+#################################################################################################################################
+
+# >>>>>> THE FOLLOWING VARIABLES CAN BE OVERWRITTEN BY USERCONFIG (copy all or just those you want to change to USERCONFIG) 
+
+# AGAIN: DO NOT CHANGE ANYTHING HERE! USE THE USERCONFIG ABOVE INSTEAD!!!!
+# Those here are the default settings and getting overwritten after updating so again use the USERCONFIG instead.
+#****************************************************************************************************************
 
 # user vars:
 SPLUSR="splunk"			        # the user splunk should run as
@@ -44,8 +60,19 @@ LNX=/bin/ln                     # ln binary for linking the commands
 RMX=/bin/rm                     # rm binary to uninstall previous version
 UNZIPX=/usr/bin/unzip           # unzip binary to extract the downloaded version
 
-# NO CHANGES BEHIND THIS LINE !
+# <<<<<< THE ABOVE VARIABLES CAN BE OVERWRITTEN BY USERCONFIG - END
+
 #################################################################################################################################
+
+# Check if USERCONFIG exists and if so overwrite default settings with those defined there:
+if [ -r "$USERCONFIG" ];then
+    #debug
+    echo "... including user settings ($USERCONFIG)"
+    . "$USERCONFIG"
+    if [ $? -ne 0 ];then
+        echo "ERROR: $USERCONFIG exists but cannot be included! ABORTED."
+    fi
+fi
 
 # system vars (do not change!):
 SUBIN=/bin/su                       # full path to su binary
