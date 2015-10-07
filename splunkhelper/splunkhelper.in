@@ -105,35 +105,36 @@ echo -e "\n... execution command was <$BIN>\n... executed as user <$ID>\n"
 # usage info
 F_HELP(){
     echo '
+    
+    IMPORTANT HINT:
+    If you want help for the REAL splunk command simply execute "splunk help" instead!
+    
     **************
     * USAGE INFO *
     **************
     
-    -h | --help                     This help/usage info
-    --helperupdate                  Easy self-update the splunkhelper. Needs root permission.
-                                    You CAN specify an URL to the update ZIP - if you like. Otherwise the default update
-                                    URL is used (stable releases by default).
-                                    It will download the new version and install it automatically afterwards.
-                                    
-                                    Defining a custom update URL enables you to deploy a new version of splunkhelper for your
-                                    internal network when not every server has access to the internet or if you want to
-                                    download an unstable/developer version of splunkhelper.
-                                    You can combine "splunkexchange" with "splunk --helperupdate <URL>". Nice isnt it? ;)
-                                    
-                                    Example:
-                                    splunk> server "A" download a new splunkhelper version from git
-                                    and you want to deploy it on splunk> server B:
-                                    1) (A) --> $> cd /tmp
-                                    2) download the latest stable release:
-                                       (A) --> $> wget https://github.com/xdajog/splunk/archive/master.zip
-                                        or if you like it bleeding edge:
-                                       (A) --> $> wget https://github.com/xdajog/splunk/archive/dev_splunkhelper.zip
-                                    3) (A) --> $> splunkexchange 5555
-                                    4) start the update on server B as user "root" (otherwise you cannot install):
-                                       (B) --> #> splunk --helperupdate http://serverA:5555/master.zip (or "dev_splunkhelper.zip")
-                                        
-    IMPORTANT HINT:
-    If you want help for the REAL splunk command simply execute "splunk help" instead!
+    -h | --help         This help/usage info
+    --helperupdate      Easy self-update the splunkhelper. Needs root permission.
+                        You CAN specify an URL to the update ZIP - if you like. Otherwise the default update
+                        URL is used (stable releases by default).
+                        It will download the new version and install it automatically afterwards.
+                        
+                        Defining a custom update URL enables you to deploy a new version of splunkhelper for your
+                        internal network when not every server has access to the internet or if you want to
+                        download an unstable/developer version of splunkhelper.
+                        You can combine "splunkexchange" with "splunk --helperupdate <URL>". Nice isnt it? ;)
+                        
+                        Example:
+                        splunk> server "A" download a new splunkhelper version from git
+                        and you want to deploy it on splunk> server B:
+                        1) (A) --> $> cd /tmp
+                        2) download the latest stable release:
+                           (A) --> $> wget https://github.com/xdajog/splunk/archive/master.zip
+                            or if you like it bleeding edge:
+                           (A) --> $> wget https://github.com/xdajog/splunk/archive/dev_splunkhelper.zip
+                        3) (A) --> $> splunkexchange 5555
+                        4) start the update on server B as user "root" (otherwise you cannot install):
+                           (B) --> #> splunk --helperupdate http://serverA:5555/master.zip (or "dev_splunkhelper.zip")
     
     Non specific splunk> commands (executable on every server type):
     ****************************************************************************************************************
