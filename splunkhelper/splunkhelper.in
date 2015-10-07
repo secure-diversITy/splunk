@@ -76,7 +76,7 @@ fi
 
 # system vars (do not change!):
 SUBIN=/bin/su                       # full path to su binary
-SUPPVER=620                         # The supported and tested splunk> version. It may or may not work with older versions
+SUPPVER=620                         # The supported and tested minimal splunk> version. It may or may not work with older versions
                                     # Do NOT change that variable! If you have an older splunk version running adjust FORCEOLD above!
 SPLBIN="$SPLDIR/bin/splunk"	        # the generated full path to splunk binary
 ID=$(id -un) 			            # get the effective - not real user name
@@ -105,9 +105,10 @@ F_HELP(){
     
     -h | --help                     This help/usage info
     --helperupdate                  Easy self-update the splunkhelper. Needs root permission.
-                                    You can specify an URL to the update ZIP - if you like. Otherwise the default update
+                                    You CAN specify an URL to the update ZIP - if you like. Otherwise the default update
                                     URL is used. It will download the new version and install it automatically afterwards.
-                                    Defining an own update URL enables you deploy a new version of splunkhelper for your
+                                    
+                                    Defining a custom update URL enables you deploy a new version of splunkhelper for your
                                     internal network when not every server has access to the internet.
                                     You can combine "splunkexchange" with "splunk --helperupdate <URL>". Nice isnt it? ;)
                                     Example:
@@ -279,7 +280,7 @@ F_VERSION(){
     fi
 }
 
-# this will move later to the special commands where we need this
+# this will be moved later to the special subcommands where we need this
 F_VERSION
 
 # end a command SILENTLY after given timeout:
