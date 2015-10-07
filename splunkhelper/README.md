@@ -31,20 +31,30 @@
 
     -h | --help                     This help/usage info
     --helperupdate                  Easy self-update the splunkhelper. Needs root permission.
-                                    You can specify an URL to the update ZIP - if you like. Otherwise the default update
-                                    URL is used. It will download the new version and install it automatically afterwards.
-                                    Defining an own update URL enables you deploy a new version of splunkhelper for your
-                                    internal network when not every server has access to the internet.
+                                    You CAN specify an URL to the update ZIP - if you like. Otherwise the default update
+                                    URL is used (stable releases by default).
+                                    It will download the new version and install it automatically afterwards.
+                                    
+                                    Defining a custom update URL enables you to deploy a new version of splunkhelper for your
+                                    internal network when not every server has access to the internet or if you want to
+                                    download an unstable/developer version of splunkhelper.
                                     You can combine "splunkexchange" with "splunk --helperupdate <URL>". Nice isnt it? ;)
+                                    
                                     Example:
                                     splunk> server "A" download a new splunkhelper version from git
                                     and you want to deploy it on splunk> server B:
-                                    (A) --> $> cd /tmp
-                                    (A) --> $> wget https://github.com/xdajog/splunk/archive/master.zip
-                                    (A) --> $> splunkexchange 5555
-                                    as user "root" (otherwise you cannot install) on server B:
-                                    (B) --> #> splunk --helperupdate http://serverA:5555/master.zip
-
+                                    1) (A) --> $> cd /tmp
+                                    2) download the latest stable release:
+                                       (A) --> $> wget https://github.com/xdajog/splunk/archive/master.zip
+                                        or if you like it bleeding edge:
+                                       (A) --> $> wget https://github.com/xdajog/splunk/archive/dev_splunkhelper.zip
+                                    3) (A) --> $> splunkexchange 5555
+                                    4) start the update on server B as user "root" (otherwise you cannot install):
+                                       (B) --> #> splunk --helperupdate http://serverA:5555/master.zip (or "dev_splunkhelper.zip")
+                                        
+    IMPORTANT HINT:
+    If you want help for the REAL splunk command simply execute "splunk help" instead!
+    
     Non specific splunk> commands (executable on every server type):
     ****************************************************************************************************************
     $> splunk                       Provides direct access to splunk binary but with the powers of splunkhelper!
@@ -53,7 +63,8 @@
     $> splunkrestart                Restarts splunk
                                     (real exec: "restart")
                                         
-    $> splunkwebrestart             Restarts splunk web interface
+    $> splunkwebrestart             Restarts splunk web interface (no effect since splunk> v6.2 because it is no separate
+                                    daemon anymore... If you want to restart the web in >=6.2 use splunk restart instead)
                                     (real exec: "restartss")
                                         
     $> splunkdebug                   Executes btool debug check
@@ -68,18 +79,18 @@
     $> splunkstatus                 Status of splunk and helper processes
                                     (real exec: "status")
 
-    $> splunkshcapply               Apply/Deploy configuration bundle within a Search Head Cluster
-        |splunkshcdeploy            (real exec: "apply shcluster-bundle -target xxxx")
-                                    You can execute this on the Deployer or on every other splunk> instance because
-                                    it will ask you for a cluster member(!).
-                                    If you execute it on a SH cluster member server it will catch the cluster members
-                                    for you and their status for easy copy & paste                               
-
                                         
     Specific splunk> commands (executable on specific server types only):
     ****************************************************************************************************************
-    $> splunkcmapply                Apply/Deploy configuration bundle within a index cluster
-        |splunkcmdeploy             (real exec: "apply cluster-bundle")
+    $> splunkshcapply               Apply configuration bundle within a Search Head Cluster
+                                    (real exec: "apply shcluster-bundle -target xxxx")
+                                    You can execute this on the Deployer or on the CM because
+                                    it will ask you for a SH cluster member.
+                                    If you execute it on a SH cluster member server it will catch the cluster members
+                                    for you and their status for easy copy & paste                               
+
+    $> splunkcmapply                Apply configuration bundle within a index cluster
+                                     (real exec: "apply cluster-bundle")
                                     --> This will work on a Cluster Master (CM) only (will abort if not on CM)
                                         
     $> splunkclustershow            Shows the current cluster status
@@ -104,11 +115,18 @@
                                     Starts a simple python http server in the CURRENT directory. You can specify
                                     a tcp port - if not: default is 8888.
                                     **DUE TO SECURITY REASONS IT WILL STOP AFTER 300 SECONDS AUTOMATICALLY!**
-                                    Example: splunkexchange 9999 will start a webserver in the current directory
-                                    on port 9999. If your hostname is "foo" you can then download all files of
-                                    that directory by pointing to http://foo:9999/
                                     Really helpful when deploying things..
                                     (real exec: "python -m SimpleHTTPServer <PORT>")
+                                    Really helpful for updating splunkhelper in large environments!
+                                    Checkout --helperupdate to combine splunkexchange with updating the helper.
+
+                                    Example 1:
+                                    "$> splunkexchange" --> will start a webserver in the current directory
+                                    on port 8888. If your hostname is "foo" you can then download all files of
+                                    that directory by pointing to http://foo:8888/
+
+                                    Example 2:
+                                    "$> splunkexchange 9999" --> will use port 9999 instead
 
 
 ## Installation (the EASY bulletproof way):
@@ -124,27 +142,18 @@
         
     3) go on with "Testing your setup" and do not forget the last chapter about "Automatic splunk> startup"!
 
-## Installation (manually - not recommended):
+#### Configuration (update save):
 
-	1) move the script "splunkhelper.in" to "/usr/local/bin" , name it "splunk" and make it executable to everyone!
-		#> mv /tmp/splunkhelper.in /usr/local/bin/splunk
-        #> chmod 755 /usr/local/bin/splunk
-		
-    2) check the user vars within /usr/local/bin/splunk:
-        --> >SPLUSR< and >SPLDIR< have to match your setup!!!
-        This is the MOST ESSENTIAL step.
-        If you skip that or do a mistake here you will get messed up
-        so check twice!
-	   
-	3) then you need to link manually all helper commands:
-        open the Makefile and check the Variable "LINKS".
-        for each command you need to do:
-        #> ln -s /usr/local/bin/splunk /usr/local/bin/<THENAMEFROMLINKS>
-        As this makes no fun switch better to the EASY method described above.
+    open /usr/local/bin/splunk with an editor and check the variable USERCONFIG.
+    Do NOT change anything here!
+    If you really need to you could change the path and filename of USERCONFIG but why?
+    
+    Create the file defined in USERCONFIG
+    Copy only the variables you want to change/overwrite from /usr/local/bin/splunk to USERCONFIG
+    
+    Now you can update the splunkhelper and it will respect always your personal settings.
 
-    3) go on with "Testing your setup" and do not forget the last chapter about "Automatic splunk> startup"!
-
-## Testing your setup:
+#### Testing your setup:
 
 	1) test it by going away from /usr/local/bin and type "splunk status" (or "splunkstatus") as user >root<
 	   it should look similar to this:
@@ -195,4 +204,3 @@
     
     To do so simply execute **"splunk --helperupdate"** and you be done. You can do more stuff check them out with
     **"splunk --help"**
-    

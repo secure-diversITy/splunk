@@ -57,13 +57,16 @@ SHCMEMB=                        # 1 SH cluster member for deploying the config b
 SHCPORT=8089                    # Management port of your SH cluster members (normally 8089)
 
 # path to some binaries needed for splunkhelper update only
-# change them here if needed:
 WGETX=/usr/bin/wget             # wget binary to download the update
 MAKEX=/usr/bin/make             # make binary to install, uninstall, update
 LNX=/bin/ln                     # ln binary for linking the commands
 RMX=/bin/rm                     # rm binary to uninstall previous version
 UNZIPX=/usr/bin/unzip           # unzip binary to extract the downloaded version
 
+# the default update URL. You may want to change that to an internal server if not all systems have access to the internet.
+UDEFURL="https://github.com/xdajog/splunk/archive/master.zip"   
+
+# AGAIN: DO NOT CHANGE ANYTHING HERE! USE THE USERCONFIG ABOVE INSTEAD!!!!
 # <<<<<< THE ABOVE VARIABLES CAN BE OVERWRITTEN BY USERCONFIG - END
 
 #################################################################################################################################
@@ -85,7 +88,6 @@ SUPPVER=620                         # The supported and tested minimal splunk> v
 SPLBIN="$SPLDIR/bin/splunk"	        # the generated full path to splunk binary
 ID=$(id -un) 			            # get the effective - not real user name
 UPDTMP="/tmp/splunkhelperupdate"    # temporary path when updating splunkhelper 
-UDEFURL="https://github.com/xdajog/splunk/archive/master.zip"   # the default update URL
 
 # ensure we have root perms. we will drop privs when needed later.
 if [ "$ID" != "root" ]&&[ "$ID" != "$SPLUSR" ];then
@@ -110,21 +112,26 @@ F_HELP(){
     -h | --help                     This help/usage info
     --helperupdate                  Easy self-update the splunkhelper. Needs root permission.
                                     You CAN specify an URL to the update ZIP - if you like. Otherwise the default update
-                                    URL is used. It will download the new version and install it automatically afterwards.
+                                    URL is used (stable releases by default).
+                                    It will download the new version and install it automatically afterwards.
                                     
-                                    Defining a custom update URL enables you deploy a new version of splunkhelper for your
-                                    internal network when not every server has access to the internet.
+                                    Defining a custom update URL enables you to deploy a new version of splunkhelper for your
+                                    internal network when not every server has access to the internet or if you want to
+                                    download an unstable/developer version of splunkhelper.
                                     You can combine "splunkexchange" with "splunk --helperupdate <URL>". Nice isnt it? ;)
+                                    
                                     Example:
                                     splunk> server "A" download a new splunkhelper version from git
                                     and you want to deploy it on splunk> server B:
-                                    (A) --> $> cd /tmp
-                                    (A) --> $> wget https://github.com/xdajog/splunk/archive/master.zip
-                                    (A) --> $> splunkexchange 5555
-                                    as user "root" (otherwise you cannot install) on server B:
-                                    (B) --> #> splunk --helperupdate http://serverA:5555/master.zip
-                                    
-    
+                                    1) (A) --> $> cd /tmp
+                                    2) download the latest stable release:
+                                       (A) --> $> wget https://github.com/xdajog/splunk/archive/master.zip
+                                        or if you like it bleeding edge:
+                                       (A) --> $> wget https://github.com/xdajog/splunk/archive/dev_splunkhelper.zip
+                                    3) (A) --> $> splunkexchange 5555
+                                    4) start the update on server B as user "root" (otherwise you cannot install):
+                                       (B) --> #> splunk --helperupdate http://serverA:5555/master.zip (or "dev_splunkhelper.zip")
+                                        
     IMPORTANT HINT:
     If you want help for the REAL splunk command simply execute "splunk help" instead!
     
@@ -152,18 +159,18 @@ F_HELP(){
     $> splunkstatus                 Status of splunk and helper processes
                                     (real exec: "status")
 
-    $> splunkshcapply               Apply/Deploy configuration bundle within a Search Head Cluster
-        |splunkshcdeploy            (real exec: "apply shcluster-bundle -target xxxx")
-                                    You can execute this on the Deployer or on every other splunk> instance because
-                                    it will ask you for a cluster member(!).
-                                    If you execute it on a SH cluster member server it will catch the cluster members
-                                    for you and their status for easy copy & paste                               
-
                                         
     Specific splunk> commands (executable on specific server types only):
     ****************************************************************************************************************
-    $> splunkcmapply                Apply/Deploy configuration bundle within a index cluster
-        |splunkcmdeploy             (real exec: "apply cluster-bundle")
+    $> splunkshcapply               Apply configuration bundle within a Search Head Cluster
+                                    (real exec: "apply shcluster-bundle -target xxxx")
+                                    You can execute this on the Deployer or on the CM because
+                                    it will ask you for a SH cluster member.
+                                    If you execute it on a SH cluster member server it will catch the cluster members
+                                    for you and their status for easy copy & paste                               
+
+    $> splunkcmapply                Apply configuration bundle within a index cluster
+                                     (real exec: "apply cluster-bundle")
                                     --> This will work on a Cluster Master (CM) only (will abort if not on CM)
                                         
     $> splunkclustershow            Shows the current cluster status
@@ -188,11 +195,19 @@ F_HELP(){
                                     Starts a simple python http server in the CURRENT directory. You can specify
                                     a tcp port - if not: default is 8888.
                                     **DUE TO SECURITY REASONS IT WILL STOP AFTER '$HTTPTIMER' SECONDS AUTOMATICALLY!**
-                                    Example: splunkexchange 9999 will start a webserver in the current directory
-                                    on port 9999. If your hostname is "foo" you can then download all files of
-                                    that directory by pointing to http://foo:9999/
                                     Really helpful when deploying things..
                                     (real exec: "python -m SimpleHTTPServer <PORT>")
+                                    Really helpful for updating splunkhelper in large environments!
+                                    Checkout --helperupdate to combine splunkexchange with updating.
+
+                                    Example 1:
+                                    "$> splunkexchange" --> will start a webserver in the current directory
+                                    on port 8888. If your hostname is "foo" you can then download all files of
+                                    that directory by pointing to http://foo:8888/
+
+                                    Example 2:
+                                    "$> splunkexchange 9999" --> will use port 9999 instead
+                                    
     '
 }
 
