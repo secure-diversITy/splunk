@@ -47,6 +47,10 @@ FORCEOLD=                       # If you're using an older version than the supp
 HTTPTIMER=300                   # the time in SECONDS the splunkexchange http server will run.
                                 # After this amount of time the http server will be shutdown automatically due to security reasons.
 
+# detect high availability (e.g. keepalived) before executing any stop/start/restart command
+# if you set this to '0' it will skip that check (not recommended!)
+HACHECK=1
+
 # SH cluster configs (if you have one):
 SHCMEMB=                        # 1 SH cluster member for deploying the config bundle
                                 # You can leave this value empty (recommended) to ask for it
@@ -280,6 +284,44 @@ F_VERSION(){
     fi
 }
 
+# check for any kind of HA tools. This is useful e.g. on a HA - Intermediate Forwarder - Setup where you want to ensure
+# that you do not restart the master node by mistake. You want to do that on the slave node first and if all went as
+# expected you would switch the slave to master and do the restart on the now made slave to have a minimal downtime for
+# your Forwarders.
+F_CHKHA(){
+    unset ANS
+    HA=0
+    RANS=99
+    # Debian/Ubuntu:    /var/run/keepalived.pid
+    # RHEL/CentOS:      /var/lock/subsys/keepalived
+    HAINDICATORS="/var/run/keepalived.pid /var/lock/subsys/keepalived"
+    
+    # when HA check is enabled (default) checking the HA indicator files
+    if [ "$HACHECK" -eq 1 ];then
+        for haind in $HAINDICATORS;do
+            if [ -f "$haind" ];then
+                HA=$(($HA+1))
+            fi
+        done
+        if [ $HA -ne 0 ];then
+            while [ "$RANS" -ne 0 ];do
+                echo -e "\n*******************************************************************"
+                echo -e "WARNING:\nThis host seems to have some kind of 'High Availability' \ntool enabled (e.g. 'keepalived')\n\nTHINK TWICE BEFORE PROCEEDING!"
+                echo -e "*******************************************************************\n"
+                echo -e "(You can prevent this message from appearing by setting \n'HACHECK=0' in $USERCONFIG)\n"
+                read -p "Try your changes on the SLAVE node first! Do you want to ABORT? (y/n) : " ANS
+                if [ ! "$ANS" != "y" ]||[ ! "$ANS" != "n" ];then RANS=0;fi
+            done
+            if [ "$ANS" == "y" ]||[ -z "$ANS" ];then
+                echo -e "\nAborted by user request.\n"
+                exit 0
+            fi
+        fi
+    else
+        echo -e "WARNING: Skipping HA check because you do disabled it (HACHECK=0).\nThis is not recommended but well you MAY know what you're doing...\n"
+    fi
+}
+
 # this will be moved later to the special subcommands where we need this
 F_VERSION
 
@@ -328,12 +370,14 @@ case $BIN in
 		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n... splunk arguments: $ARGS\n" && $SUBIN -c "$SPLBIN $ARGS" - $SPLUSR; else echo && "$SPLBIN" "$@";fi
         ;;
         splunkstop) # stop splunk>
+        F_CHKHA
 		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN stop" - $SPLUSR; else echo && "$SPLBIN" stop;fi
         ;;
         splunkstart) # start splunk>
 		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN start" - $SPLUSR; else echo && "$SPLBIN" start ;fi
         ;;
         splunkrestart) # restart splunk>
+        F_CHKHA
 		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN restart" - $SPLUSR; else echo && "$SPLBIN" restart;fi
         ;;
         splunkwebrestart) # restart splunk> web
