@@ -321,10 +321,10 @@ F_CHKHA(){
         if [ $HA -ne 0 ];then
             while [ "$RANS" -ne 0 ];do
                 echo -e "\n*******************************************************************"
-                echo -e "WARNING:\nThis host seems to have some kind of 'High Availability' \ntool enabled (e.g. 'keepalived')\n\nTHINK TWICE BEFORE PROCEEDING!"
+                echo -e "WARNING:\nThis host seems to have some kind of 'High Availability' \ntool enabled (e.g. 'keepalived').\nThis checks NOT for master/slave state but for HA in place only.\n\nTHINK TWICE BEFORE PROCEEDING!"
                 echo -e "*******************************************************************\n"
                 echo -e "(You can prevent this message from appearing by setting \n'HACHECK=0' in $USERCONFIG)\n"
-                read -p "Try your changes on the SLAVE node first! Do you want to ABORT? (y/n) : " ANS
+                read -p "Try your changes on a SLAVE node first! Do you want to ABORT? (y/n) : " ANS
                 if [ ! "$ANS" != "y" ]||[ ! "$ANS" != "n" ];then RANS=0;fi
             done
             if [ "$ANS" == "y" ]||[ -z "$ANS" ];then
