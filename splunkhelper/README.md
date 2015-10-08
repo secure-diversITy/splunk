@@ -15,16 +15,16 @@ Just configure this helper as described in the *"Install"* section and begin usi
 - Simply execute splunk commands regardless in which path you're currently in
 - Enhancements for daily usage inside (e.g. *splunkexchange* or detecting HA installations)
 
-   Note:   
-   Since splunk> v6.1.1 a variable *SPLUNK_OS_USER* exists which ensures splunk is not started as root.
-   Setting this Variable is a good idea (see install for the details) - but as a fallback only.
-   That variable avoid only but nothing else. There is no more intelligence behind like splunkhelper has.
-   So if something goes totally wrong it will come in place but it will not make things easier.
-   The biggest advantage of splunkhelper is that even when you're *root* you can use splunk related
-   commands without switching the user! The logic inside splunkhelper let you execute whatever you like
-   but without carrying about the correct user permission.
-   
-   *Using the variable + this helper will make your splunk installation as much immutable as possible!*
+Note:   
+Since splunk> v6.1.1 a variable *SPLUNK_OS_USER* exists which ensures splunk is not started as root.
+Setting this Variable is a good idea (see install for the details) - but as a fallback only.
+That variable avoid only but nothing else. There is no more intelligence behind like splunkhelper has.
+So if something goes totally wrong it will come in place but it will not make things easier.
+The biggest advantage of splunkhelper is that even when you're *root* you can use splunk related
+commands without switching the user! The logic inside splunkhelper let you execute whatever you like
+but without carrying about the correct user permission.
+
+*Using the variable + this helper will make your splunk installation as much immutable as possible!*
    
 ## Usage:
 
@@ -146,12 +146,14 @@ Just configure this helper as described in the *"Install"* section and begin usi
 ## Installation (the EASY bulletproof way):
 
 1. as **>root<** or by using **sudo**:
+
         #> make install
 
 2. if splunk version **>= 6.1.1**: Set/Check the fallback splunk user variable:
-            (splunk)$> vim /opt/splunk/etc/splunk-launch.conf
-            
-            SPLUNK_OS_USER=splunk (where "splunk" is your splunk username)
+
+        (splunk)$> vim /opt/splunk/etc/splunk-launch.conf
+
+        SPLUNK_OS_USER=splunk (where "splunk" is your splunk username)
 
 3. configure  splunkhelper (next section)
  - This is the **MOST ESSENTIAL** step! If you skip that or do a mistake here you will get messed up
@@ -171,7 +173,8 @@ so check twice!
 
 #### Testing your setup:
 
-1. type "splunk status" as user **>root<**. it should look similar to this: 
+1. type "splunk status" as user **>root<**. it should look similar to this:
+
         ... execution command was <splunk>
         ... executed as user <root>
         ... dropping privileges to user **<splunk>**
@@ -179,6 +182,7 @@ so check twice!
         splunk helpers are running (PIDs: 6536 6547 6879 7061).
             
 2. type "splunk status" as user **>splunk<** (or the one you defined as *SPLUSR*) <br>it should look similar to this (no "dropping privileges" because executed by the *SPLUSR*):
+
 		... execution command was <splunk>
 		... executed as user **<splunk>**
 		splunkd is running (PID: 6535).
@@ -197,6 +201,7 @@ If you like you can also ensure that even a "*service splunk restart/stop/start*
         (where "/opt/splunk/" is your splunk installation path and "-user <splunk>" is your splunk username)
        
 2. Afterwards open the init.d script and change all occurences of the original path with the splunkhelper path:
+
             #> vim /etc/init.d/splunk
             /opt/splunk/ --> /usr/local/
             e.g.:
