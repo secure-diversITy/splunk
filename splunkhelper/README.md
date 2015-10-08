@@ -1,6 +1,6 @@
 ## Description
 
-   Well what is that *splunkhelper*? Let me ask your some questions because those were mine a while ago:<br>
+   Well what is that *splunkhelper*? Let me ask you some questions because those were mine a while ago:<br>
    
 - Have you ever started splunk> as the wrong user (oh well if you *HAVE* - you know what I mean)?<br>
 - Are you sick of all those long commands to apply the cluster bundle, reload deployment classes,....?<br>
@@ -165,8 +165,8 @@ so check twice!
 
 1. open */usr/local/bin/splunk* with an editor and check especially the following variables (do **NOT** change anything here!):
  - **USERCONFIG**  =======> do **NOT** change it! Remember full path for the next step.
- - **SPLUSR** ===========> do **NOT** change! If you want to change copy that variable name instead)
- - **SPLDIR** ============> do **NOT** change! If you want to change copy that variable name instead)
+ - **SPLUSR** ===========> do **NOT** change! If you want to change copy that variable name instead
+ - **SPLDIR** ============> do **NOT** change! If you want to change copy that variable name instead
 2. Create the file defined in *USERCONFIG* (you may need to create the directory first)
 3. Copy only the variables you want to change/overwrite from */usr/local/bin/splunk* to *USERCONFIG*
 4. Now you can update the splunkhelper worry-free and it will respect always your personal settings.
