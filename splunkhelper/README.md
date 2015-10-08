@@ -1,21 +1,31 @@
 ## Description
 
-   Have you ever started splunk> as the wrong user? Oh well if you *HAVE* - you know what I
-   mean. This helper here exists to avoid this problem forever! 
-   Just configure this helper as described in "Install" and begin using splunk> "worry-free".
+   Well what is that *splunkhelper*? Let me ask your some questions because those were mine a while ago:<br>
+   
+- Have you ever started splunk> as the wrong user (oh well if you *HAVE* - you know what I mean)?<br>
+- Are you sick of all those long commands to apply the cluster bundle, reload deployment classes,....?<br>
+- Do you want to ease up your (splunk>) life - especially (but not only) in large environments?<br>
 
-   Note:   
-   Since splunk> v6.1.1 a Variable *SPLUNK_OS_USER* exists which is doing more or less the same
-   but not in the complete same manner and it comes without the command shortcuts, of course.
-   Setting this Variable is nevertheless a good idea - at least as a fallback if something goes wrong
-   (see install for the details). Using that variable + this helper will make your splunk commands
-   as much immutable as possible!
+Just configure this helper as described in the *"Install"* section and begin using splunk> **"worry-free"**!
 
+**Features & Advantages when using splunkhelper:**
 - Never worry about doing splunk> related commands with the correct user
 - No need to switch from user >root< to your splunk user (privileges gets dropped automagically)
 - Ease up your life by entering simple shortcuts instead of non-rememberable arguments
-- Simply execute splunk commands regardless in which path you currently are in
+- Simply execute splunk commands regardless in which path you're currently in
+- Enhancements for daily usage inside (e.g. *splunkexchange* or detecting HA installations)
 
+   Note:   
+   Since splunk> v6.1.1 a variable *SPLUNK_OS_USER* exists which ensures splunk is not started as root.
+   Setting this Variable is a good idea (see install for the details) - but as a fallback only.
+   That variable avoid only but nothing else. There is no more intelligence behind like splunkhelper has.
+   So if something goes totally wrong it will come in place but it will not make things easier.
+   The biggest advantage of splunkhelper is that even when you're *root* you can use splunk related
+   commands without switching the user! The logic inside splunkhelper let you execute whatever you like
+   but without carrying about the correct user permission.
+   
+   *Using the variable + this helper will make your splunk installation as much immutable as possible!*
+   
 ## Usage:
 
    Use **"splunk -h | --help"** at anytime to get usage info for the splunkhelper!
@@ -135,56 +145,58 @@
 
 ## Installation (the EASY bulletproof way):
 
-    1) as root or while using sudo:
+1. as **>root<** or by using **sudo**:
         #> make install
-    
-    2) check the user vars within /usr/local/bin/splunk:
-        --> >SPLUSR< and >SPLDIR< have to match your setup!!!
-        This is the MOST ESSENTIAL step.
-        If you skip that or do a mistake here you will get messed up
-        so check twice!
-        
-    3) go on with "Testing your setup" and do not forget the last chapter about "Automatic splunk> startup"!
+
+2. if splunk version **>= 6.1.1**: Set/Check the fallback splunk user variable:
+            (splunk)$> vim /opt/splunk/etc/splunk-launch.conf
+            
+            SPLUNK_OS_USER=splunk (where "splunk" is your splunk username)
+
+3. configure  splunkhelper (next section)
+ - This is the **MOST ESSENTIAL** step! If you skip that or do a mistake here you will get messed up
+so check twice!
+
+3. go on with "Testing your setup" and do not forget the last chapter about "Automatic splunk> startup"!
 
 #### Configuration (update save):
 
-    open /usr/local/bin/splunk with an editor and check the variable USERCONFIG.
-    Do NOT change anything here!
-    If you really need to you could change the path and filename of USERCONFIG but why?
-    
-    Create the file defined in USERCONFIG
-    Copy only the variables you want to change/overwrite from /usr/local/bin/splunk to USERCONFIG
-    
-    Now you can update the splunkhelper and it will respect always your personal settings.
+1. open */usr/local/bin/splunk* with an editor and check especially the following variables (do **NOT** change anything here!):
+ - **USERCONFIG**  =======> do **NOT** change it! Remember full path for the next step.
+ - **SPLUSR** ===========> do **NOT** change! If you want to change copy that variable name instead)
+ - **SPLDIR** ============> do **NOT** change! If you want to change copy that variable name instead)
+2. Create the file defined in *USERCONFIG* (you may need to create the directory first)
+3. Copy only the variables you want to change/overwrite from */usr/local/bin/splunk* to *USERCONFIG*
+4. Now you can update the splunkhelper worry-free and it will respect always your personal settings.
 
 #### Testing your setup:
 
-	1) test it by going away from /usr/local/bin and type "splunk status" (or "splunkstatus") as user >root<
-	   it should look similar to this:
-		... execution command was <splunk>
-		... executed as user **<root>**
-		... dropping privileges to user **<splunk>**
-		splunkd is running (PID: 6535).
-		splunk helpers are running (PIDs: 6536 6547 6879 7061).
-		
-	2) type "splunk status" (or "splunkstatus") as user <splunk> (the one you defined as SPLUSR)
-	   it should look similar to this (no "dropping privileges" because executed by the SPLUSR):
+1. type "splunk status" as user **>root<**. it should look similar to this: 
+        ... execution command was <splunk>
+        ... executed as user <root>
+        ... dropping privileges to user **<splunk>**
+        splunkd is running (PID: 6535).
+        splunk helpers are running (PIDs: 6536 6547 6879 7061).
+            
+2. type "splunk status" as user **>splunk<** (or the one you defined as *SPLUSR*) <br>it should look similar to this (no "dropping privileges" because executed by the *SPLUSR*):
 		... execution command was <splunk>
 		... executed as user **<splunk>**
 		splunkd is running (PID: 6535).
 		splunk helpers are running (PIDs: 6536 6547 6879 7061).
 		
-	3) you should check the output carefully once that everything goes well but then
-	   you never need to care about again ;)
+3. you should check the output of the above carefully once! If everything goes well you never need to care about this again (until the next splunkhelper update ;) ).
 
-## Automatic splunk> startup when booting:
+## (Optional) Undestroyable splunk> service/boot:
 
-    1) if you already have the init.d script installed skip this step and go to step 2.
-       Automatic splunk> start by init.d: You need to enable the init.d script *without* the splunkhelper cmds and as user <root>:
-            #> /opt/splunk/bin/splunk enable boot-start -user splunk
-            (where "/opt/splunk/" is your splunk installation path)
+If you like you can also ensure that even a "*service splunk restart/stop/start*" will be immutable by following this guide:
+
+1. if you already have the init.d script installed skip this step and go to step 2.<br>
+    You need to enable the init.d script *without* the splunkhelper cmds and as user **>root<**:
+        
+        #> /opt/splunk/bin/splunk enable boot-start -user splunk
+        (where "/opt/splunk/" is your splunk installation path and "-user <splunk>" is your splunk username)
        
-    2)   Afterwards open the init.d script and change all occurences of the path:
+2. Afterwards open the init.d script and change all occurences of the original path with the splunkhelper path:
             #> vim /etc/init.d/splunk
             /opt/splunk/ --> /usr/local/
             e.g.:
@@ -192,19 +204,21 @@
             
             or more easily use this single sed line:
             #> sed -i s#/opt/splunk/bin#/usr/local/bin#g /etc/init.d/splunk
-    
-    3) if splunk version >= 6.1.1: Set/Check the fallback splunk user variable:
-            (splunk)$> vim /opt/splunk/etc/splunk-launch.conf
-            
-            SPLUNK_OS_USER=splunk (where "splunk" is your splunk username)
-            
-        That variable should be set already correctly by step 1 but checking it doesn't hurt right?!
-        If that variable is set and you forget step 2 or overwrite the init.d script by accident
-        it will not destroy anything 'cause of this variable here.
-        
-## Updating (the EASY bulletproof way):
+  
+## Updating:
+      
+### Updating (the EASY bulletproof way):
 
-    Once you have splunkhelper installed you can simply use the self-update function coming with splunkhelper!
+Once you have splunkhelper installed you can simply use the amazing *self-update function* coming with splunkhelper!
     
-    To do so simply execute **"splunk --helperupdate"** and you be done. You can do more stuff check them out with
-    **"splunk --help"**
+To do so simply execute:
+- **"splunk --helperupdate"** and you're done!
+
+You can do more stuff like the same easy update - but **without internet access**!<br>
+Or you can update the developer edition instead of the master one etc etc.<br>
+Check all your options with:
+- **"splunk --help"**
+
+### Updating (manually):
+
+Sames as installing so check the install guide :)
