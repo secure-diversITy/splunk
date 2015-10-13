@@ -13,9 +13,10 @@
 #
 #########################################################################################
 #
-# Last changed: 2015-08-14
+# Last changed: 2015-10-13
 #
 #########################################################################################
+EPATH=$(dirname $0)         # detect path we're running in
 
 # user vars:
 BONBIN="/usr/sbin/bonnie++"	# the full path to your bonnie++ installation
@@ -23,7 +24,7 @@ IZBIN="/usr/bin/iozone"     # the full path to your iozone installation
 
 # system vars:
 REQBINS="$BONBIN $IZBIN"    # needed for pre-checking binaries
-FUNCS=./libs                # function directory of getiops.sh
+FUNCS=$EPATH/libs           # function directory of getiops.sh
 BCSV=/tmp/bonnie.csv        # bonnie csv output file
 
 # pre-check
@@ -81,6 +82,7 @@ done
 # 0 means interactive. 1 means batch mode.
 case $CHOICE in
     a1) # auto bonnie
+        [ -f "$BCSV" ]&& rm -vf "$BCSV" && echo "...deleted previous stats file $BCSV"
         F_BONNIE 1 $BCSV
     ;;
     a2) # auto iozone
