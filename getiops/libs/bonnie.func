@@ -40,7 +40,7 @@ F_BONNIE(){
         [ "x$SPLPROC" != "xy" ]&&echo -e "\n\tABORTED. Please stop splunk first!\n"&& exit
         read -p "Your amount of RAM in Megabyte (MB) > " RAM
         read -p "The mountpoint / storage you want to test > " STORAGE
-        read -p "How many tests? (leave empty for default: 10) > " TESTS
+        read -p "How many tests? (leave empty for default: 5) > " TESTS
         read -p "Number of files getting written (leave empty for default: 100) > " NFILES
         read -p "Number of directories (leave empty for default: 100) > " DIRS
     else
@@ -51,7 +51,7 @@ F_BONNIE(){
     BSIZE=$(($RAM * 3))
     [ "x$BATCH" == "x0" ]&&echo -e "\n\tCalculated file size is: $BSIZE MB ($RAM * 3 to trick cache)"
     [ "x$BATCH" == "x0" ]&&echo -e "\tTake a cup of coffee - or two. This will take a while!!!\n\tBest practice is: Start 'iostat 1' and watching the 'tps' column while this is running..\n"
-    [ -z "$TESTS" ]&& TESTS="10"
+    [ -z "$TESTS" ]&& TESTS="5"
     [ -z "$NFILES" ]&& NFILES="100"
     [ -z "$DIRS" ]&& DIRS="100"
     
