@@ -50,13 +50,54 @@ F_BONNIE(){
 
     BSIZE=$(($RAM * 3))
     [ "x$BATCH" == "x0" ]&&echo -e "\n\tCalculated file size is: $BSIZE MB ($RAM * 3 to trick cache)"
-    [ ! -d "$STORAGE" ]&&echo -e "\n\tABORTED! $STORAGE seems to not exist!?\n"&& exit 3
     [ "x$BATCH" == "x0" ]&&echo -e "\tTake a cup of coffee - or two. This will take a while!!!\n\tBest practice is: Start 'iostat 1' and watching the 'tps' column while this is running..\n"
     [ -z "$TESTS" ]&& TESTS="10"
     [ -z "$NFILES" ]&& NFILES="100"
     [ -z "$DIRS" ]&& DIRS="100"
+    
+    # test write access before we start
+    if [ ! -d "$STORAGE" ];then
+        echo -e "\n\tABORTED! $STORAGE seems to not exist!?\n"
+        exit 3
+    else
+        > $STORAGE/bonnie.testfile
+        if [ $? -eq 0 ];then
+            echo -e "\tOK Storage exists and is writable to me."
+        else
+            echo -e "\n\tABORTED! $STORAGE is not writable to me!\n"
+            exit 3
+        fi
+    fi
 
-    # finally doing the magic number:max:min:num-directories:chunk-size
+    # check if we would have enough free inodes first:
+    FREEIN=$(df --output=iavail "$STORAGE" |egrep -o "[[:digit:]]+")
+    if [ -z "$FREEIN" ];then
+        echo -e "\n\tABORTED! Cannot determine free inodes ($FREEIN)!\n"
+        exit 3
+    else
+        # calculate the real used inodes (bonnie++ will multiply the given value with 1024):
+        BONINODES=$((${NFILES}*1024))
+        
+        # compare the free inodes of the filesystem with the one we about to use:
+        INODESFREE=$(($FREEIN - $BONINODES))
+        
+        echo -e "\tCurrently free inodes:\t$FREEIN"
+        echo -e "\t... we would use:\t$BONINODES"
+        echo -e "\t... leaving this free inodes:\t$INODESFREE"
+        
+        if [ "$INODESFREE" -lt 10000 ];then
+            echo -e "\n\tABORTED! Not enough free inodes!\n"
+            echo -e "\tIn order to not running into problem we abort here.\n"
+            echo -e "\nRestart and choose less than $NFILES at 'Number of files getting written'"
+            exit 3
+        fi
+    fi
+            
+    # finally doing the magic
+    # -n "number:max:min:num-directories:chunk-size":
+    # max is the maximum size and min is the minimum size (both default to 0 if not specified). If minimum and maximum  sizes  are  specified
+    # then  every  file  will  have a random size from the range min..max inclusive.  If you specify a number of directories then the files will be
+    # evenly distributed amoung that many sub-directories
     $BONBIN -x $TESTS -d $STORAGE -s ${BSIZE}m -r ${RAM}m -b -n ${NFILES}:${BSIZE}:8:${DIRS} >> $CSV
 }
 
