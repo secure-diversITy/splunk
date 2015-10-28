@@ -75,52 +75,57 @@ but without carrying about the correct user permission.
                                     (real exec: like "/opt/splunk/bin/splunk" )
                                         
     $> splunkrestart                Restarts splunk
-                                    (real exec: "restart")
+                                    (real exec: "splunk restart")
                                         
     $> splunkwebrestart             Restarts splunk web interface (no effect since splunk> v6.2 because it is no separate
                                     daemon anymore... If you want to restart the web in >=6.2 use splunk restart instead)
-                                    (real exec: "restartss")
+                                    (real exec: "splunk restartss")
                                         
     $> splunkdebug                   Executes btool debug check
                                     (real exec: "btool --debug check")
                                         
     $> splunkstop                   Stops splunk
-                                    (real exec: "stop")
+                                    (real exec: "splunk stop")
                                         
     $> splunkstart                  Starts splunk
-                                    (real exec: "start")
+                                    (real exec: "splunk start")
                                         
     $> splunkstatus                 Status of splunk and helper processes
-                                    (real exec: "status")
-
+                                    (real exec: "splunk status")
+                                    
+    $> splunkreload                 Reloads splunk without restarting the whole splunkd!
+                                    You can provide the following specific reloads:
+                                    splunkreload [ macros | views | searches | panels | nav | apps | all ]
+                                    Thanks for the idea and first realisation Simon ;) (https://github.com/simcen/).
+                                    (real exec: "splunk _internal call /...") 
                                         
     Specific splunk> commands (executable on specific server types only):
     ****************************************************************************************************************
     $> splunkshcapply               Apply configuration bundle within a Search Head Cluster
-                                    (real exec: "apply shcluster-bundle -target xxxx")
+                                    (real exec: "splunk apply shcluster-bundle -target xxxx")
                                     You can execute this on the Deployer or on the CM because
                                     it will ask you for a SH cluster member.
                                     If you execute it on a SH cluster member server it will catch the cluster members
                                     for you and their status for easy copy & paste                               
 
     $> splunkcmapply                Apply configuration bundle within a index cluster
-                                     (real exec: "apply cluster-bundle")
+                                     (real exec: "splunk apply cluster-bundle")
                                     --> This will work on a Cluster Master (CM) only (will abort if not on CM)
                                         
     $> splunkclustershow            Shows the current cluster status
-                                    (real exec: "show cluster-status")
+                                    (real exec: "splunk show cluster-status")
                                     --> This will work on a Cluster Master (CM) only (will abort if not on CM)
                                         
     $> splunkclustershowbundle      Shows the current status of cluster bundle config
-                                    (real exec: "show cluster-bundle-status")
+                                    (real exec: "splunk show cluster-bundle-status")
                                     --> This will work on a Cluster Master (CM) only (will abort if not on CM)
                                         
     $> splunkclusterlistpeers       Shows the peers status connected to an index cluster
-                                    (real exec: "list cluster-peers")
+                                    (real exec: "splunk list cluster-peers")
                                     --> This will work on a Cluster Master (CM) only (will abort if not on CM)
 
     $> splunkdsreload               Reloads the deploymentservers classes to deploy changes if needed.
-                                    (real exec: "reload deploy-server")
+                                    (real exec: "splunk reload deploy-server")
                                     --> This will work on a Deployment Server (DS) only (will abort if not on DS)
     
     General commands (not directly splunk> related):
