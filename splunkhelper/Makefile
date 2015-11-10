@@ -17,6 +17,8 @@ LINKS = "splunkrestart \
 		splunkclusterlistpeers \
 		splunkdsreload \
         splunkreload \
+        splunkshcshowstatus \
+        splunkshclistcaptain \
 		splunkexchange"
 
 install:

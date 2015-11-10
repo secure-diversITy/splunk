@@ -173,7 +173,15 @@ F_HELP(){
                                     You can execute this on the Deployer or on the CM because
                                     it will ask you for a SH cluster member.
                                     If you execute it on a SH cluster member server it will catch the cluster members
-                                    for you and their status for easy copy & paste                               
+                                    for you and their status for easy copy & paste
+                                    
+    $> splunkshcshowstatus          Shows the status of your Search Head Cluster
+                                    (real exec: splunk show shcluster-status)
+                                    Can be executed on any Search Head member or captain but nowhere else.
+                                    
+    $> splunkshclistcaptain         Lists the current Captain of the Search Head Cluster
+                                    (real exec: splunk list shcluster-captain-info)
+                                    Can be executed on any Search Head member or captain but nowhere else.
 
     $> splunkcmapply                Apply configuration bundle within a index cluster
                                      (real exec: "splunk apply cluster-bundle")
@@ -194,6 +202,7 @@ F_HELP(){
     $> splunkdsreload               Reloads the deploymentservers classes to deploy changes if needed.
                                     (real exec: "splunk reload deploy-server")
                                     --> This will work on a Deployment Server (DS) only (will abort if not on DS)
+                                        
     
     General commands (not directly splunk> related):
     ****************************************************************************************************************    
@@ -378,6 +387,21 @@ F_CHECKDS(){
     if [ $MERR -ne 0 ];then echo -e "\n\tERROR: This command can be executed on a Deployment Server only!\n\tserverclass.conf has no valid stanza so I believe it is not a active deployment server.\n\tOnce you have configured a serverclass this command will work.\n\n\tABORTED\n\n" && exit $MERR ;fi
 }
 
+# checking if we're running on a SHC (when needed) and hard exit if not!
+F_CHECKSHC(){
+    if [ ! "$ID" == "$SPLUSR" ];then
+        echo -e "... dropping privileges to user <$SPLUSR> to get shc cluster info\n"
+        $SUBIN -c "$SPLBIN list shcluster-config" - $SPLUSR > /dev/null
+        MERR=$?
+        if [ $MERR -ne 0 ];then echo -e "\n\tERROR: This command can be executed on a Search Head Cluster member only!\n" && exit $MERR ;fi
+    else
+        echo
+        "$SPLBIN" list shcluster-config > /dev/null
+         MERR=$?
+         if [ $MERR -ne 0 ];then echo -e "\n\tERROR: This command can be executed on a Search Head Cluster member only!\n" && exit $MERR ;fi
+    fi
+}
+
 # reloading splunk (like debug/refresh in the web page). START>
 reload_endpoint() {
     EP="/services${1}"
@@ -491,6 +515,14 @@ case $BIN in
             echo
             "$SPLBIN" apply shcluster-bundle -target "$SHCURI"
         fi
+        ;;
+        splunkshcshowstatus) # show SH cluster status
+        F_CHECKSHC
+        if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN show shcluster-status" - $SPLUSR; else echo && "$SPLBIN" show shcluster-status;fi
+        ;;
+        splunkshclistcaptain) # show current SH captain
+        F_CHECKSHC
+        if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN list shcluster-captain-info" - $SPLUSR; else echo && "$SPLBIN" list shcluster-captain-info;fi
         ;;
         splunkcmdeploy|splunkcmapply) # splunk> Index cluster deploy configuration bundle
         # check if we're runnin on a CM first!
