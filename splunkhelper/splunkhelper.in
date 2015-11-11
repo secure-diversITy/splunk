@@ -348,7 +348,7 @@ F_CHKHA(){
             fi
         fi
     else
-        echo -e "WARNING: Skipping HA check because you do disabled it (HACHECK=0).\nThis is not recommended but well you MAY know what you're doing...\n"
+        echo -e "WARNING: Skipping HA check because you force to disable it (HACHECK=0).\nThis is not recommended but well you MAY know what you're doing...\n"
     fi
 }
 
