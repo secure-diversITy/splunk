@@ -162,7 +162,7 @@ F_HELP(){
                                     
     $> splunkreload                 Reloads splunk without restarting the whole splunkd!
                                     You can provide the following specific reloads:
-                                    splunkreload [ macros | views | searches | panels | nav | apps | all ]
+                                    splunkreload [ macros | transforms | views | searches | panels | nav | apps | all ]
                                     Thanks for the idea and first realisation Simon ;) (https://github.com/simcen/).
                                     (real exec: "splunk _internal call /...") 
                                         
@@ -393,7 +393,23 @@ F_CHECKSHC(){
         echo -e "... dropping privileges to user <$SPLUSR> to get shc cluster info\n"
         $SUBIN -c "$SPLBIN list shcluster-config" - $SPLUSR > /dev/null
         MERR=$?
-        if [ $MERR -ne 0 ];then echo -e "\n\tERROR: This command can be executed on a Search Head Cluster member only!\n" && exit $MERR ;fi
+        if [ $MERR -ne 0 ];then
+            if [ -z "$SHCMEMB" ];then
+                while [ -z "$SHCMEMB" ];do
+                    echo -e "\nHint: SHCMEMB variable is not defined in $BIN\nIf you like you can predefine a cluster member but it is recommended to define it manually here.\n"
+                    read -p "Please specify 1 active SH cluster member (e.g.: '1.1.1.1' or 'my.fqdn.com') > " SHCMEMB
+                done
+            fi
+            SHCHOST="${SHCMEMB%:*}"
+            SHCPORT=$(echo $SHCMEMB | cut -d ":" -f2)
+            [ -z "$SHCPORT" ]&&SHCPORT="8089"
+            SHCURI="https://${SHCMEMB}:${SHCPORT}"                        
+            echo -e "\n\tYou're not on a Search Head cluster member. Please specify a valid SH cluster member (host:managementport):\n"
+            echo -e "\tIf you use the default management port you need to specify the hostname/IP only.\n"
+            read -p "(e.g.: '172.1.2.50:28089' or 'my.fqdn.com') > " SHCMEMB
+        fi
+        
+        
     else
         echo
         "$SPLBIN" list shcluster-config > /dev/null
@@ -422,8 +438,14 @@ reload_endpoint() {
     fi
 }
 
+RELOAD_TRANSFORMS(){
+    reload_endpoint /admin/transforms-extracts/_reload
+    reload_endpoint /admin/transforms-lookup/_reload
+    reload_endpoint /admin/transforms-reload/_reload
+}
+
 function reload_macros() {
-reload_endpoint /admin/macros/_reload
+    reload_endpoint /admin/macros/_reload
 }
 
 reload_views() {
@@ -612,6 +634,11 @@ case $BIN in
                     macros)
                     echo -e "... reloading macros:"
                     reload_macros
+                    echo -e "\n"
+                    ;;
+                    transforms)
+                    echo -e "... reloading transforms:"
+                    RELOAD_TRANSFORMS
                     echo -e "\n"
                     ;;
                     views)
