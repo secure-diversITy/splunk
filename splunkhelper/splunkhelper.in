@@ -1,7 +1,7 @@
 #!/bin/bash
 #########################################################################################
 #
-# Author:	Thomas Fischer <mail@se-di.de>, https://github.com/xdajog
+# Author:	Thomas Fischer <mail@se-di.de>, https://github.com/secure-diversITy
 # Created: 	2015-08-13
 # License: 	CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 #
@@ -19,7 +19,7 @@
 #
 #########################################################################################
 #
-# Last changed: 2015-10-28
+# Last changed: 2016-04-28
 #
 #########################################################################################
 
@@ -64,7 +64,7 @@ RMX=/bin/rm                     # rm binary to uninstall previous version
 UNZIPX=/usr/bin/unzip           # unzip binary to extract the downloaded version
 
 # the default update URL. You may want to change that to an internal server if not all systems have access to the internet.
-UDEFURL="https://github.com/xdajog/splunk/archive/master.zip"   
+UDEFURL="https://github.com/secure-diversITy/splunk/archive/master.zip"   
 
 # AGAIN: DO NOT CHANGE ANYTHING HERE! USE THE USERCONFIG ABOVE INSTEAD!!!!
 # <<<<<< THE ABOVE VARIABLES CAN BE OVERWRITTEN BY USERCONFIG - END
@@ -129,9 +129,9 @@ F_HELP(){
                         and you want to deploy it on splunk> server B:
                         1) (A) --> $> cd /tmp
                         2) download the latest stable release:
-                           (A) --> $> wget https://github.com/xdajog/splunk/archive/master.zip
+                           (A) --> $> wget https://github.com/secure-diversITy/splunk/archive/master.zip
                             or if you like it bleeding edge:
-                           (A) --> $> wget https://github.com/xdajog/splunk/archive/dev_splunkhelper.zip
+                           (A) --> $> wget https://github.com/secure-diversITy/splunk/archive/dev_splunkhelper.zip
                         3) (A) --> $> splunkexchange 5555
                         4) start the update on server B as user "root" (otherwise you cannot install):
                            (B) --> #> splunk --helperupdate http://serverA:5555/master.zip (or "dev_splunkhelper.zip")
