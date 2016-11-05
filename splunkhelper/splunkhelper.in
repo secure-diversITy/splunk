@@ -1,7 +1,7 @@
 #!/bin/bash
 #########################################################################################
 #
-# Author:	Thomas Fischer <mail@se-di.de>, https://github.com/xdajog
+# Author:	Thomas Fischer <mail@se-di.de>, https://github.com/secure-diversITy
 # Created: 	2015-08-13
 # License: 	CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 #
@@ -9,8 +9,8 @@
 #   Have you ever started splunk> as the wrong user? Oh well if you HAVE you know what I
 #   mean. This helper here exists to avoid those forever! 
 #     - Never worry about doing splunk> related commands with the correct user!
-#     - No need to switch from user <root> to your splunk user 
-#   just configure this helper with the installation path and splunk username and after
+#     - No need to switch from user <root> to your splunk> user 
+#   just configure this helper with the installation path and splunk> username and after
 #   doing the symlinks you are done. 
 #
 #########################################################################################
@@ -19,33 +19,75 @@
 #
 #########################################################################################
 #
-# Last changed: 2015-09-14
+# Last changed: 2016-11-05
 #
 #########################################################################################
 
+# user settings
+# create this file and add your changes there. That way updates will not overwrite your
+# personal settings:
+USERCONFIG=/etc/splunkhelper/config
+
+#################################################################################################################################
+# NO CHANGES BEHIND THIS LINE !
+# !! USE USERCONFIG FILE ABOVE TO CHANGE VARIABLES !!
+#################################################################################################################################
+
+# >>>>>> THE FOLLOWING VARIABLES CAN BE OVERWRITTEN BY USERCONFIG (copy all or just those you want to change to USERCONFIG) 
+
+# AGAIN: DO NOT CHANGE ANYTHING HERE! USE THE USERCONFIG ABOVE INSTEAD!!!!
+# Those here are the default settings and getting overwritten after updating so again use the USERCONFIG instead.
+#****************************************************************************************************************
+
 # user vars:
-SPLUSR="splunk"			        # the user splunk should run as
-SPLDIR="/opt/splunk"		    # splunk installation path
+SPLUSR="splunk"			        # the user splunk> is running
+SPLDIR="/opt/splunk"		    # splunk> installation path
 FORCEOLD=                       # If you're using an older version than the supported one you can set
                                 # this variable to "y" and no warning message will appear anymore
-HTTPTIMER=300                   # the time in SECONDS the splunkexchange http server will run.
+HTTPTIMER=300                   # the time in SECONDS the shelperexchange http server will run.
                                 # After this amount of time the http server will be shutdown automatically due to security reasons.
+
+# detect high availability (e.g. keepalived) before executing any stop/start/restart command
+# if you set this to '0' it will skip that check (not recommended!)
+HACHECK=1
 
 # SH cluster configs (if you have one):
 SHCMEMB=                        # 1 SH cluster member for deploying the config bundle
                                 # You can leave this value empty (recommended) to ask for it
 SHCPORT=8089                    # Management port of your SH cluster members (normally 8089)
 
+# path to some binaries needed for splunkhelper update only
+WGETX=/usr/bin/wget             # wget binary to download the update
+MAKEX=/usr/bin/make             # make binary to install, uninstall, update
+LNX=/bin/ln                     # ln binary for linking the commands
+RMX=/bin/rm                     # rm binary to uninstall previous version
+UNZIPX=/usr/bin/unzip           # unzip binary to extract the downloaded version
 
-# NO CHANGES BEHIND THIS LINE !
+# the default update URL. You may want to change that to an internal server if not all systems have access to the internet.
+UDEFURL="https://github.com/secure-diversITy/splunk/archive/master.zip"   
+
+# AGAIN: DO NOT CHANGE ANYTHING HERE! USE THE USERCONFIG ABOVE INSTEAD!!!!
+# <<<<<< THE ABOVE VARIABLES CAN BE OVERWRITTEN BY USERCONFIG - END
+
 #################################################################################################################################
 
+# Check if USERCONFIG exists and if so overwrite default settings with those defined there:
+if [ -r "$USERCONFIG" ];then
+    #debug
+    echo "... including user settings ($USERCONFIG)"
+    . "$USERCONFIG"
+    if [ $? -ne 0 ];then
+        echo "ERROR: $USERCONFIG exists but cannot be included! ABORTED."
+    fi
+fi
+
 # system vars (do not change!):
-SUBIN=/bin/su                   # full path to su binary
-SUPPVER=620                     # The supported and tested splunk> version. It may or may not work with older versions
-                                # Do NOT change that variable! If you have an older splunk version running adjust FORCEOLD above!
-SPLBIN="$SPLDIR/bin/splunk"	    # the generated full path to splunk binary
-ID=$(id -un) 			        # get the effective - not real user name
+SUBIN=/bin/su                       # full path to su binary
+SUPPVER=620                         # The supported and tested minimal splunk> version. It may or may not work with older versions
+                                    # Do NOT change that variable! If you have an older splunk> version running adjust FORCEOLD above!
+SPLBIN="$SPLDIR/bin/splunk"	        # the generated full path to splunk> binary
+ID=$(id -un) 			            # get the effective - not real user name
+UPDTMP="/tmp/splunkhelperupdate"    # temporary path when updating splunkhelper 
 
 # ensure we have root perms. we will drop privs when needed later.
 if [ "$ID" != "root" ]&&[ "$ID" != "$SPLUSR" ];then
@@ -63,86 +105,183 @@ echo -e "\n... execution command was <$BIN>\n... executed as user <$ID>\n"
 # usage info
 F_HELP(){
     echo '
+    
+    IMPORTANT HINT:
+    If you want help for the REAL splunk> command simply execute "splunk help" instead!
+    
     **************
     * USAGE INFO *
     **************
     
-    IMPORTANT HINT:
-    If you want help for the REAL splunk command simply execute "splunk help" instead!
+    -h | --help         This help/usage info
+    --helperupdate      Easy self-update the splunkhelper. Needs root permission.
+                        You CAN specify an URL to the update ZIP - if you like. Otherwise the default update
+                        URL is used (stable releases by default).
+                        It will download the new version and install it automatically afterwards.
+                        
+                        Defining a custom update URL enables you to deploy a new version of splunkhelper for your
+                        internal network when not every server has access to the internet or if you want to
+                        download an unstable/developer version of splunkhelper.
+                        You can combine "shelperexchange" with "shelper --helperupdate <URL>". Nice isnt it? ;)
+                        
+                        Example:
+                        splunk> server named "A" downloads a new splunkhelper version from git
+                        and you want to deploy it on splunk> server B:
+                        1) (A) --> $> cd /tmp
+                        2) download the latest stable release:
+                           (A) --> $> wget https://github.com/secure-diversITy/splunk/archive/master.zip
+                            or if you like it bleeding edge:
+                           (A) --> $> wget https://github.com/secure-diversITy/splunk/archive/dev_splunkhelper.zip
+                        3) (A) --> $> shelperexchange 5555
+                        4) start the update on server B as user "root" (otherwise you cannot install):
+                           (B) --> #> shelper --helperupdate http://serverA:5555/master.zip (or "dev_splunkhelper.zip")
     
     Non specific splunk> commands (executable on every server type):
     ****************************************************************************************************************
-    $> splunk                       Provides direct access to splunk binary but with the powers of splunkhelper!
-                                    (real exec: like "/opt/splunk/bin/splunk" )
+    $> shelper                       Provides direct access to splunk> binary but with the powers of splunkhelper!
+                                    (real exec: like "$SPLBIN" )
                                         
-    $> splunkrestart                Restarts splunk
-                                    (real exec: "restart")
+    $> shelperrestart                Restarts splunk>
+                                    (real exec: "splunk restart")
                                         
-    $> splunkwebrestart             Restarts splunk web interface (no effect since splunk> v6.2 because it is no separate
-                                    daemon anymore... If you want to restart the web in >=6.2 use splunk restart instead)
-                                    (real exec: "restartss")
+    $> shelperwebrestart             Restarts splunk> web interface
+                                    (real exec: "splunk restartss")
                                         
-    $> splunkdebug                   Executes btool debug check
-                                    (real exec: "btool --debug check")
+    $> shelperdebug                   Executes btool debug check
+                                    (real exec: "splunk btool --debug check")
                                         
-    $> splunkstop                   Stops splunk
-                                    (real exec: "stop")
+    $> shelperstop                   Stops splunk>
+                                    (real exec: "splunk stop")
                                         
-    $> splunkstart                  Starts splunk
-                                    (real exec: "start")
+    $> shelperstart                  Starts splunk>
+                                    (real exec: "splunk start")
                                         
-    $> splunkstatus                 Status of splunk and helper processes
-                                    (real exec: "status")
-
-    $> splunkshcapply               Apply/Deploy configuration bundle within a Search Head Cluster
-        |splunkshcdeploy            (real exec: "apply shcluster-bundle -target xxxx")
-                                    You can execute this on the Deployer or on every other splunk> instance because
-                                    it will ask you for a cluster member(!).
-                                    If you execute it on a SH cluster member server it will catch the cluster members
-                                    for you and their status for easy copy & paste                               
-
+    $> shelperstatus                 Status of splunk> and helper processes
+                                    (real exec: "splunk status")
+                                    
+    $> shelperreload                 Reloads splunk> without restarting the whole splunkd!!
+                                    You can provide the following specific reloads:
+                                    shelperreload [ macros | transforms | views | searches | panels | nav | apps | all ]
+                                    Thanks for the idea and first realization Simon ;) (https://github.com/simcen/).
+                                    (real exec: "splunk _internal call /...") 
                                         
-    Specific commands (executable on specific server types only):
+    Specific shelper> commands (executable on specific server types only):
     ****************************************************************************************************************
-    $> splunkcmapply                Apply/Deploy configuration bundle within a index cluster
-        |splunkcmdeploy             (real exec: "apply cluster-bundle")
+    $> shelpershcapply               Apply configuration bundle within a Search Head Cluster
+                                    (real exec: "splunk apply shcluster-bundle -target xxxx")
+                                    You can execute this on the Deployer or on the CM because
+                                    it will ask you for a SH cluster member.
+                                    If you execute it on a SH cluster member server it will catch the cluster members
+                                    for you and their status for easy copy & paste
+                                    
+    $> shelpershcshowstatus          Shows the status of your Search Head Cluster
+                                    (real exec: splunk show shcluster-status)
+                                    Can be executed on any Search Head member or captain but nowhere else.
+                                    
+    $> shelpershclistcaptain         Lists the current Captain of the Search Head Cluster
+                                    (real exec: splunk list shcluster-captain-info)
+                                    Can be executed on any Search Head member or captain but nowhere else.
+
+    $> shelpercmapply                Apply configuration bundle within a index cluster
+                                     (real exec: "splunk apply cluster-bundle")
                                     --> This will work on a Cluster Master (CM) only (will abort if not on CM)
                                         
-    $> splunkclustershow            Shows the current cluster status
-                                    (real exec: "show cluster-status")
+    $> shelperclustershow            Shows the current cluster status
+                                    (real exec: "splunk show cluster-status")
                                     --> This will work on a Cluster Master (CM) only (will abort if not on CM)
                                         
-    $> splunkclustershowbundle      Shows the current status of cluster bundle config
-                                    (real exec: "show cluster-bundle-status")
+    $> shelperclustershowbundle      Shows the current status of cluster bundle config
+                                    (real exec: "splunk show cluster-bundle-status")
                                     --> This will work on a Cluster Master (CM) only (will abort if not on CM)
                                         
-    $> splunkclusterlistpeers       Shows the peers status connected to an index cluster
-                                    (real exec: "list cluster-peers")
+    $> shelperclusterlistpeers       Shows the peers status connected to an index cluster
+                                    (real exec: "splunk list cluster-peers")
                                     --> This will work on a Cluster Master (CM) only (will abort if not on CM)
 
-    $> splunkdsreload               Reloads the deploymentservers classes to deploy changes if needed.
-                                    (real exec: "reload deploy-server")
+    $> shelperdsreload               Reloads the deploymentservers classes to deploy changes if needed.
+                                    (real exec: "splunk reload deploy-server")
                                     --> This will work on a Deployment Server (DS) only (will abort if not on DS)
+                                        
     
-    General commands (not directly splunk> related):
+    General commands (not directly shelper> related):
     ****************************************************************************************************************    
-    $> splunkexchange               Requires python (provides the server module) and perl (for the timeout).
+    $> shelperexchange               Requires python (provides the server module) and perl (for the timeout).
                                     Starts a simple python http server in the CURRENT directory. You can specify
                                     a tcp port - if not: default is 8888.
                                     **DUE TO SECURITY REASONS IT WILL STOP AFTER '$HTTPTIMER' SECONDS AUTOMATICALLY!**
-                                    Example: splunkexchange 9999 will start a webserver in the current directory
-                                    on port 9999. If your hostname is "foo" you can then download all files of
-                                    that directory by pointing to http://foo:9999/
                                     Really helpful when deploying things..
                                     (real exec: "python -m SimpleHTTPServer <PORT>")
+                                    Really helpful for updating splunkhelper in large environments!
+                                    Checkout --helperupdate to combine shelperexchange with updating.
+
+                                    Example 1:
+                                    "$> shelperexchange" --> will start a webserver in the current directory
+                                    on port 8888. If your hostname is "foo" you can then download all files of
+                                    that directory by pointing to http://foo:8888/
+
+                                    Example 2:
+                                    "$> shelperexchange 9999" --> will use port 9999 instead
+                                    
     '
 }
 
-# check if we may need help first
+# checking if we have all tools installed to update splunkhelper
+F_CHKUPDREQ(){
+    REQBINS="$WGETX $MAKEX $LNX $RMX $UNZIPX"
+    for req in $REQBINS;do
+        if [ -x "$req" ];then
+            echo "... $req found and is executable. fine."
+        else
+            echo -e "\n\tERROR: Missing a required binary: <$req>.\n\tInstall $req or correct path in $0 to reflect your installation.\n\tABORTED...\n"
+            exit 3
+        fi
+    done
+}   
+
+# the self-update magic
+F_HUPDATE(){
+    if [ -z "$1" ];then
+        UPDATEURL="$UDEFURL"
+    else
+        UPDATEURL="$1"
+    fi
+    UPDFILE="${UPDATEURL##*/}"
+    [ -z "$UPDFILE" ]&&echo -e "\n\tERROR: Cannot extract the file name from path <$UPDATEURL>. ABORTED.\n" && exit 3
+    if [ ! "$ID" == "root" ];then
+        echo -e "\n\tSelf-updating the splunkhelper needs root permission (you're $ID) so you either need to switch to user <root>"
+        echo -e "\tor start again with sudo (sudo shelper --helperupdate)\n"
+        exit
+    else
+        echo -e "... root permission available so we can proceed.."
+        [ -d $UPDTMP ]&& echo "... deleting old updater temp path" && rm -vrf $UPDTMP
+        mkdir $UPDTMP && cd $UPDTMP && $WGETX $UPDATEURL
+        if [ $? -eq 0 ];then
+            echo "... extracting $UPDFILE"
+            $UNZIPX $UPDFILE
+        else
+            echo -e "\n\tERROR: while downloading from <$UPDATEURL> or creating temp path <$UPDTMP>. ABORTED."
+            exit 3
+        fi
+        cd ./*/splunkhelper && make uninstall && make install
+        if [ $? -eq 0 ];then
+            echo -e "\nUpdate went fine. All done successful. ENJOY YOUR NEW VERSION OF SPLUNKHELPER :o)\n\n"
+        else
+            echo -e "\n\tERROR: while updating! Check above output for details."
+            exit 3
+        fi
+    fi
+    exit
+}
+
+# check if we may need help or update first
 case $1 in
     -h|--help)
     F_HELP
     exit
+    ;;
+    --helperupdate)
+    F_CHKUPDREQ
+    F_HUPDATE "$2"
     ;;
 esac
     
@@ -166,7 +305,7 @@ F_VERSION(){
         # check if version is supported
         if [ "$SVERSION" -lt "$SUPPVER" ]&&[ -z "$FORCEOLD" ];then
             echo -e "\n*******************************************************************"
-            echo -e "WARNING: Your splunk> version ($SVERSION) is older then the\nsupported version ($SUPPVER)...\n\nTherefore I cannot guarantee that this script works for you in all cases..\n\n(Well this is MOSTLY relevant for special commands like splunkshcdeploy etc.\nStart/Stop/Status are working fine in older versions)\n\nYou can set FORCEOLD to avoid this message from appearing"
+            echo -e "WARNING: Your splunk> version ($SVERSION) is older then the\nsupported version ($SUPPVER)...\n\nTherefore I cannot guarantee that this script works for you in all cases..\n\n(Well this is MOSTLY relevant for special commands like shelpershcdeploy etc.\nStart/Stop/Status are working fine in older versions)\n\nYou can set FORCEOLD to avoid this message from appearing"
             echo -e "*******************************************************************\n\n"
             read -p "Do you still want to continue (press ENTER or CTRL+C to abort)?" ANS
             [ ! -z "$ANS" ]&& echo "... exiting with $ANS " && exit
@@ -174,7 +313,45 @@ F_VERSION(){
     fi
 }
 
-# this will move later to the special commands where we need this
+# check for any kind of HA tools. This is useful e.g. on a HA - Intermediate Forwarder - Setup where you want to ensure
+# that you do not restart the master node by mistake. You want to do that on the slave node first and if all went as
+# expected you would switch the slave to master and do the restart on the now made slave to have a minimal downtime for
+# your Forwarders.
+F_CHKHA(){
+    unset ANS
+    HA=0
+    RANS=99
+    # Debian/Ubuntu:    /var/run/keepalived.pid
+    # RHEL/CentOS:      /var/lock/subsys/keepalived
+    HAINDICATORS="/var/run/keepalived.pid /var/lock/subsys/keepalived"
+    
+    # when HA check is enabled (default) checking the HA indicator files
+    if [ "$HACHECK" -eq 1 ];then
+        for haind in $HAINDICATORS;do
+            if [ -f "$haind" ];then
+                HA=$(($HA+1))
+            fi
+        done
+        if [ $HA -ne 0 ];then
+            while [ "$RANS" -ne 0 ];do
+                echo -e "\n*******************************************************************"
+                echo -e "WARNING:\nThis host seems to have some kind of 'High Availability' \ntool enabled (e.g. 'keepalived').\nThis checks NOT for master/slave state but for HA in place only.\n\nTHINK TWICE BEFORE PROCEEDING!"
+                echo -e "*******************************************************************\n"
+                echo -e "(You can prevent this message from appearing by setting \n'HACHECK=0' in $USERCONFIG)\n"
+                read -p "Try your changes on a SLAVE node first! Do you want to ABORT? (y/n) : " ANS
+                if [ ! "$ANS" != "y" ]||[ ! "$ANS" != "n" ];then RANS=0;fi
+            done
+            if [ "$ANS" == "y" ]||[ -z "$ANS" ];then
+                echo -e "\nAborted by user request.\n"
+                exit 0
+            fi
+        fi
+    else
+        echo -e "WARNING: Skipping HA check because you force to disable it (HACHECK=0).\nThis is not recommended but well you MAY know what you're doing...\n"
+    fi
+}
+
+# this will be moved later to the special subcommands where we need this
 F_VERSION
 
 # end a command SILENTLY after given timeout:
@@ -200,7 +377,7 @@ F_CHECKCM(){
 
 # checking if we're running on a DS (when needed) and hard exit if not!
 F_CHECKDS(){
-    # basic check cause there is no splunk related command other then "list deploy-clients" but that
+    # basic check cause there is no splunk> related command other then "list deploy-clients" but that
     # has no valid exitcode. Well we could parse the output but if that changes.. and it will tell only
     # that clients had connected but not if we have a config here. So we check if there is at least one
     # stanza defined in the serverclass.conf:
@@ -209,6 +386,100 @@ F_CHECKDS(){
     if [ $MERR -ne 0 ];then echo -e "\n\tERROR: This command can be executed on a Deployment Server only!\n\tserverclass.conf has no valid stanza so I believe it is not a active deployment server.\n\tOnce you have configured a serverclass this command will work.\n\n\tABORTED\n\n" && exit $MERR ;fi
 }
 
+# checking if we're running on a SHC (when needed) and hard exit if not!
+F_CHECKSHC(){
+    if [ ! "$ID" == "$SPLUSR" ];then
+        echo -e "... dropping privileges to user <$SPLUSR> to get shc cluster info\n"
+        $SUBIN -c "$SPLBIN list shcluster-config" - $SPLUSR > /dev/null
+        MERR=$?
+        if [ $MERR -ne 0 ];then
+            if [ -z "$SHCMEMB" ];then
+                while [ -z "$SHCMEMB" ];do
+                    echo -e "\nHint: SHCMEMB variable is not defined in $BIN\nIf you like you can predefine a cluster member but it is recommended to define it manually here.\n"
+                    read -p "Please specify 1 active SH cluster member (e.g.: '1.1.1.1' or 'my.fqdn.com') > " SHCMEMB
+                done
+            fi
+            SHCHOST="${SHCMEMB%:*}"
+            SHCPORT=$(echo $SHCMEMB | cut -d ":" -f2)
+            [ -z "$SHCPORT" ]&&SHCPORT="8089"
+            SHCURI="https://${SHCMEMB}:${SHCPORT}"                        
+            echo -e "\n\tYou're not on a Search Head cluster member. Please specify a valid SH cluster member (host:managementport):\n"
+            echo -e "\tIf you use the default management port you need to specify the hostname/IP only.\n"
+            read -p "(e.g.: '172.1.2.50:28089' or 'my.fqdn.com') > " SHCMEMB
+        fi
+        
+        
+    else
+        echo
+        "$SPLBIN" list shcluster-config > /dev/null
+         MERR=$?
+         if [ $MERR -ne 0 ];then echo -e "\n\tERROR: This command can be executed on a Search Head Cluster member only!\n" && exit $MERR ;fi
+    fi
+}
+
+# reloading splunk (like debug/refresh in the web page). START>
+reload_endpoint() {
+    EP="/services${1}"
+    
+    # In handler 'collections-conf': Must use user context of 'nobody' when interacting with collection configurations 
+    [ "$EP" == "/services/admin/collections-conf/_reload" ] && EP="/servicesNS/nobody/system/admin/collections-conf/_reload"
+    
+    # some cosmetics
+    EPM=${EP%_reload}
+    EPS=${EPM#/*/}
+    
+    echo -ne "\treloading '$EPS' --> "
+    STATUS=$(shelper _internal call $EP | grep HTTP | grep -o "200")
+    if [ "$STATUS" == 200 ];then
+        echo -e "... OK: reloaded '$EPS' successfully"
+    else
+        echo -e "\n\t*****************************\n\tWARNING: Reloading $EP ended not successfully!\n\tIF(!) you need that endpoint reloaded consider a full <shelperrestart> instead.\n\t*****************************"
+    fi
+}
+
+RELOAD_TRANSFORMS(){
+    reload_endpoint /admin/transforms-extracts/_reload
+    reload_endpoint /admin/transforms-lookup/_reload
+    reload_endpoint /admin/transforms-reload/_reload
+}
+
+function reload_macros() {
+    reload_endpoint /admin/macros/_reload
+}
+
+reload_views() {
+reload_endpoint /data/ui/views/_reload
+reload_panels
+reload_nav
+}
+
+function reload_panels() {
+reload_endpoint /data/ui/panels/_reload
+}
+
+function reload_nav() {
+reload_endpoint /data/ui/nav/_reload
+}
+
+function reload_apps() {
+   reload_endpoint /admin/localapps/_reload
+}
+
+function reload_searches() {
+  reload_endpoint /admin/savedsearch/_reload
+}
+
+function reload_all() {
+# fetch all available endpoints which can be reloaded:
+for ep in $(shelper _internal call /services/admin |grep -o "/admin/.*/_reload"|tr "\n" " ");do
+    reload_endpoint $ep
+done
+reload_endpoint /data/ui/manager/_reload
+reload_endpoint /data/ui/nav/_reload
+reload_endpoint /data/ui/views/_reload
+}
+# <END: reloading shelper (like debug/refresh in the web page)
+
 # and act accordingly:
 case $BIN in
 	# just a site note: I check for the splunk user and not for root here. Why?
@@ -216,30 +487,32 @@ case $BIN in
 	# the worst could happen would be that su failing because of permission.
 	# this way I ensure that even when the user id was not catched correctly that 
 	# this will not destroy the splunk> dirs..!
-        splunk) # a simple wrapper with all given arguments
+        shelper) # a simple wrapper with all given arguments
         # workaround for DAMN $@ handling in bash when fwd them to su
         for i in "$@";do ARGS="$ARGS $i";done
-		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n... splunk arguments: $ARGS\n" && $SUBIN -c "$SPLBIN $ARGS" - $SPLUSR; else echo && "$SPLBIN" "$@";fi
+		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n... shelper arguments: $ARGS\n" && $SUBIN -c "$SPLBIN $ARGS" - $SPLUSR; else echo && "$SPLBIN" "$@";fi
         ;;
-        splunkstop) # stop splunk>
+        shelperstop) # stop shelper>
+        F_CHKHA
 		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN stop" - $SPLUSR; else echo && "$SPLBIN" stop;fi
         ;;
-        splunkstart) # start splunk>
+        shelperstart) # start shelper>
 		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN start" - $SPLUSR; else echo && "$SPLBIN" start ;fi
         ;;
-        splunkrestart) # restart splunk>
+        shelperrestart) # restart shelper>
+        F_CHKHA
 		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN restart" - $SPLUSR; else echo && "$SPLBIN" restart;fi
         ;;
-        splunkwebrestart) # restart splunk> web
+        shelperwebrestart) # restart shelper> web
 		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN restartss" - $SPLUSR; else echo && "$SPLBIN" restartss;fi
         ;;
-        splunkdebug) # use splunk> btool debug
+        shelperdebug) # use shelper> btool debug
 		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN btool --debug check" - $SPLUSR; else echo && "$SPLBIN" btool --debug check;fi
         ;;
-        splunkstatus) # splunk> status
+        shelperstatus) # shelper> status
 		if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN status" - $SPLUSR; else echo && "$SPLBIN" status;fi
         ;;
-        splunkshcdeploy|splunkshcapply) # splunk> SH cluster deploy configuration bundle
+        shelpershcdeploy|shelpershcapply) # shelper> SH cluster deploy configuration bundle
         if [ ! "$ID" == "$SPLUSR" ];then
             echo -e "... dropping privileges to user <$SPLUSR>"
             echo -e "... trying to get status and IPs of your SH cluster:" 
@@ -264,7 +537,15 @@ case $BIN in
             "$SPLBIN" apply shcluster-bundle -target "$SHCURI"
         fi
         ;;
-        splunkcmdeploy|splunkcmapply) # splunk> Index cluster deploy configuration bundle
+        shelpershcshowstatus) # show SH cluster status
+        F_CHECKSHC
+        if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN show shcluster-status" - $SPLUSR; else echo && "$SPLBIN" show shcluster-status;fi
+        ;;
+        shelpershclistcaptain) # show current SH captain
+        F_CHECKSHC
+        if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN list shcluster-captain-info" - $SPLUSR; else echo && "$SPLBIN" list shcluster-captain-info;fi
+        ;;
+        shelpercmdeploy|shelpercmapply) # shelper> Index cluster deploy configuration bundle
         # check if we're runnin on a CM first!
         F_CHECKCM
         if [ ! "$ID" == "$SPLUSR" ];then
@@ -275,9 +556,9 @@ case $BIN in
             "$SPLBIN" list master-info > /dev/null
             "$SPLBIN" apply cluster-bundle
         fi
-        splunkclustershowbundle
+        shelperclustershowbundle
         ;;
-        splunkclustershow) # shows the cluster bundle status
+        shelperclustershow) # shows the cluster bundle status
         # check if we're runnin on a CM first!
         F_CHECKCM
         if [ ! "$ID" == "$SPLUSR" ];then
@@ -288,7 +569,7 @@ case $BIN in
             "$SPLBIN" show cluster-status
         fi        
         ;;
-        splunkclustershowbundle) # shows the cluster bundle status
+        shelperclustershowbundle) # shows the cluster bundle status
         # check if we're runnin on a CM first!
         F_CHECKCM
         if [ ! "$ID" == "$SPLUSR" ];then
@@ -299,7 +580,7 @@ case $BIN in
             "$SPLBIN" show cluster-bundle-status
         fi        
         ;;
-        splunkclusterlistpeers) # shows the cluster peers status
+        shelperclusterlistpeers) # shows the cluster peers status
         # check if we're runnin on a CM first!
         F_CHECKCM
         if [ ! "$ID" == "$SPLUSR" ];then
@@ -307,10 +588,10 @@ case $BIN in
             $SUBIN -c "$SPLBIN list cluster-peers" - $SPLUSR
         else
             echo
-            "$SPLBIN" show list cluster-peers
+            "$SPLBIN" list cluster-peers
         fi        
         ;;
-        splunkdsreload) # reload DS classes
+        shelperdsreload) # reload DS classes
         # check if we're runnin on a DS first!
         F_CHECKDS
         if [ ! "$ID" == "$SPLUSR" ];then
@@ -321,16 +602,75 @@ case $BIN in
             "$SPLBIN" reload deploy-server
         fi        
         ;;
-        splunkexchange) # starts a simple python webserver for file exchange
+        shelperexchange) # starts a simple python webserver for file exchange
         if [ -z "$1" ];then HPORT=8888; else HPORT="$1"; fi
         echo -e "... exchanging files in path: <$(pwd)>"
-        echo -e "... starting HTTP server on port <$HPORT>.\n\n\t--> Connect to http://$(hostname):$HPORT/ to view and download files.\n\n\t** Use CTRL+C to stop the file exchange **\n"
+        echo -e "... starting HTTP server on port <$HPORT>."
+        TIMERSTART=$(date +%s)
+        TIMERSTARTHUMAN=$(date --date="@$TIMERSTART")        
+        echo -e "... exchange started: $TIMERSTARTHUMAN\n"
+        echo -e "\tfor your convenience here the exchangable files with wget prefixed:\n\t(connect to http://$(hostname):$HPORT/ to view subdirectories)\n"
+        find . -maxdepth 1 -type f  -exec echo -e "\twget http://$(hostname -f):$HPORT/{}" \;| sed 's#/\./#/#g'
+        TIMEREND=$(($TIMERSTART + $HTTPTIMER))
+        TIMERENDHUMAN=$(date --date="@$TIMEREND")
+        echo -e "\n\t** Use CTRL+C to stop the file exchange **\n"
+        echo -e "\t** EXCHANGE AUTOMATIC SHUTDOWN TIME: $TIMERENDHUMAN **"
+        echo -e "\t(timer is set to <$HTTPTIMER> seconds)\n"
         F_TIMEDCMD "$HTTPTIMER" "python -m SimpleHTTPServer $HPORT"
         if [ $? -eq 142 ];then
             echo -e "... exchanging files in path: <$(pwd)> ended automatically due to security reasons after $HTTPTIMER seconds.\n"
         else
             echo -e "\n... exchanging files in path: <$(pwd)> ended by user request.\n"
         fi
+        ;;
+        shelperreload) # reload splunk> configs without restarting the whole daemon
+            case $1 in
+                    all)
+                    echo -e "... reloading all endpoints:"
+                    reload_all
+                    echo -e "\n"
+                    ;;
+                    macros)
+                    echo -e "... reloading macros:"
+                    reload_macros
+                    echo -e "\n"
+                    ;;
+                    transforms)
+                    echo -e "... reloading transforms:"
+                    RELOAD_TRANSFORMS
+                    echo -e "\n"
+                    ;;
+                    views)
+                    echo -e "... reloading views:"
+                    reload_views
+                    echo -e "\n"
+                    ;;
+                    searches)
+                    echo -e "... reloading searches:"
+                    reload_searches
+                    echo -e "\n"
+                    ;;
+                    panels)
+                    echo -e "... reloading panels:"
+                    reload_panels
+                    echo -e "\n"
+                    ;;
+                    nav)
+                    echo -e "... reloading navigation:"
+                    reload_nav
+                    echo -e "\n"
+                    ;;
+                    apps)
+                    echo -e "... reloading apps:"
+                    reload_apps
+                    echo -e "\n"
+                    ;;
+                    *)
+                    echo -e "ERROR: Please specify a valid subcommand!"
+                    echo -e "You can provide the following specific subcommands/reloads:\n"
+                    echo -e "\tshelperreload [ macros | views | searches | panels | nav | apps | all ]\n\n"
+                    ;;
+            esac
         ;;
         *) # catch the rest
         F_HELP
