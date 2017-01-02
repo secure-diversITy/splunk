@@ -85,9 +85,9 @@ fi
 SUBIN=/bin/su                       # full path to su binary
 SUPPVER=620                         # The supported and tested minimal splunk> version. It may or may not work with older versions
                                     # Do NOT change that variable! If you have an older splunk> version running adjust FORCEOLD above!
-SPLBIN="$SPLDIR/bin/splunk"	        # the generated full path to splunk> binary
-ID=$(id -un) 			            # get the effective - not real user name
-UPDTMP="/tmp/shelperupdate"    # temporary path when updating splunkhelper 
+SPLBIN="$SPLDIR/bin/splunk"             # the generated full path to splunk> binary
+ID=$(id -un)                                # get the effective - not real user name
+UPDTMP="/tmp/splunkhelperupdate"    # temporary path when updating splunkhelper 
 
 # ensure we have root perms. we will drop privs when needed later.
 if [ "$ID" != "root" ]&&[ "$ID" != "$SPLUSR" ];then
@@ -437,11 +437,22 @@ reload_endpoint() {
     fi
 }
 
-RELOAD_TRANSFORMS(){
+RELOAD_PROPS(){
     reload_endpoint /admin/transforms-extracts/_reload
     reload_endpoint /admin/transforms-lookup/_reload
     reload_endpoint /admin/transforms-reload/_reload
 }
+
+RELOAD_TRANSFORMS(){
+    #reload_endpoint /admin/transforms-extracts/_reload
+    reload_endpoint /admin/transforms-lookup/_reload
+    reload_endpoint /admin/transforms-reload/_reload
+}
+
+RELOAD_EVENTTYPES(){
+    reload_endpoint /admin/eventtypes/_reload
+}
+
 
 function reload_macros() {
     reload_endpoint /admin/macros/_reload
@@ -474,6 +485,7 @@ function reload_all() {
 for ep in $(shelper _internal call /services/admin |grep -o "/admin/.*/_reload"|tr "\n" " ");do
     reload_endpoint $ep
 done
+# these cannot be found that way:
 reload_endpoint /data/ui/manager/_reload
 reload_endpoint /data/ui/nav/_reload
 reload_endpoint /data/ui/views/_reload
@@ -635,9 +647,19 @@ case $BIN in
                     reload_macros
                     echo -e "\n"
                     ;;
+					props)
+                    echo -e "... reloading props:"
+                    RELOAD_PROPS
+                    echo -e "\n"
+                    ;;
                     transforms)
                     echo -e "... reloading transforms:"
                     RELOAD_TRANSFORMS
+                    echo -e "\n"
+                    ;;
+                    eventtypes)
+                    echo -e "... reloading eventtypes:"
+                    RELOAD_EVENTTYPES
                     echo -e "\n"
                     ;;
                     views)
@@ -668,7 +690,7 @@ case $BIN in
                     *)
                     echo -e "ERROR: Please specify a valid subcommand!"
                     echo -e "You can provide the following specific subcommands/reloads:\n"
-                    echo -e "\tshelperreload [ macros | views | searches | panels | nav | apps | all ]\n\n"
+                    echo -e "\tshelperreload [ props| transforms | eventtypes | macros | views | searches | panels | nav | apps | all ]\n\n"
                     ;;
             esac
         ;;
