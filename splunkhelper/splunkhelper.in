@@ -19,7 +19,7 @@
 #
 #########################################################################################
 #
-# Last changed: 2016-11-05
+# Last changed: 2016-12-02
 #
 #########################################################################################
 
@@ -87,7 +87,7 @@ SUPPVER=620                         # The supported and tested minimal splunk> v
                                     # Do NOT change that variable! If you have an older splunk> version running adjust FORCEOLD above!
 SPLBIN="$SPLDIR/bin/splunk"	        # the generated full path to splunk> binary
 ID=$(id -un) 			            # get the effective - not real user name
-UPDTMP="/tmp/splunkhelperupdate"    # temporary path when updating splunkhelper 
+UPDTMP="/tmp/shelperupdate"    # temporary path when updating splunkhelper 
 
 # ensure we have root perms. we will drop privs when needed later.
 if [ "$ID" != "root" ]&&[ "$ID" != "$SPLUSR" ];then
@@ -114,18 +114,18 @@ F_HELP(){
     **************
     
     -h | --help         This help/usage info
-    --helperupdate      Easy self-update the splunkhelper. Needs root permission.
+    --helperupdate      Easy self-update the shelper. Needs root permission.
                         You CAN specify an URL to the update ZIP - if you like. Otherwise the default update
                         URL is used (stable releases by default).
                         It will download the new version and install it automatically afterwards.
                         
-                        Defining a custom update URL enables you to deploy a new version of splunkhelper for your
+                        Defining a custom update URL enables you to deploy a new version of shelper for your
                         internal network when not every server has access to the internet or if you want to
-                        download an unstable/developer version of splunkhelper.
+                        download an unstable/developer version of shelper.
                         You can combine "shelperexchange" with "shelper --helperupdate <URL>". Nice isnt it? ;)
                         
                         Example:
-                        splunk> server named "A" downloads a new splunkhelper version from git
+                        splunk> server named "A" downloads a new shelper version from git
                         and you want to deploy it on splunk> server B:
                         1) (A) --> $> cd /tmp
                         2) download the latest stable release:
@@ -138,7 +138,7 @@ F_HELP(){
     
     Non specific splunk> commands (executable on every server type):
     ****************************************************************************************************************
-    $> shelper                       Provides direct access to splunk> binary but with the powers of splunkhelper!
+    $> shelper                       Provides direct access to splunk> binary but with the powers of shelper!
                                     (real exec: like "$SPLBIN" )
                                         
     $> shelperrestart                Restarts splunk>
@@ -211,7 +211,7 @@ F_HELP(){
                                     **DUE TO SECURITY REASONS IT WILL STOP AFTER '$HTTPTIMER' SECONDS AUTOMATICALLY!**
                                     Really helpful when deploying things..
                                     (real exec: "python -m SimpleHTTPServer <PORT>")
-                                    Really helpful for updating splunkhelper in large environments!
+                                    Really helpful for updating shelper in large environments!
                                     Checkout --helperupdate to combine shelperexchange with updating.
 
                                     Example 1:
@@ -248,7 +248,7 @@ F_HUPDATE(){
     UPDFILE="${UPDATEURL##*/}"
     [ -z "$UPDFILE" ]&&echo -e "\n\tERROR: Cannot extract the file name from path <$UPDATEURL>. ABORTED.\n" && exit 3
     if [ ! "$ID" == "root" ];then
-        echo -e "\n\tSelf-updating the splunkhelper needs root permission (you're $ID) so you either need to switch to user <root>"
+        echo -e "\n\tSelf-updating shelper needs root permission (you're $ID) so you either need to switch to user <root>"
         echo -e "\tor start again with sudo (sudo shelper --helperupdate)\n"
         exit
     else
