@@ -28,11 +28,11 @@ but without carrying about the correct user permission.
    
 ## Usage:
 
-   Use **"splunk -h | --help"** at anytime to get usage info for the shelper!
+   Use **"shelper -h | --help"** at anytime to get usage info for the shelper!
    
-   Use **"splunk help"** to get the normal splunk help info!
+   Use **"shelper help"** to get the normal splunk> help info!
 
-   Simply use **"splunk"** and you can use **all** arguments like with /opt/splunk/bin/splunk (!!) but with the powers
+   Simply use **"shelper"** and you can use **all** arguments like with /opt/splunk/bin/splunk (!!) but with the powers
    of shelper!
    
    Execute one of the following shortcut commands to do a quick action.
@@ -47,7 +47,7 @@ but without carrying about the correct user permission.
     **************
     
     -h | --help         This help/usage info
-    --helperupdate      Easy self-update the shelper. Needs root permission.
+    --update            Easy self-update the shelper. Needs root permission.
                         You CAN specify an URL to the update ZIP - if you like. Otherwise the default update
                         URL is used (stable releases by default).
                         It will download the new version and install it automatically afterwards.
@@ -55,7 +55,7 @@ but without carrying about the correct user permission.
                         Defining a custom update URL enables you to deploy a new version of shelper for your
                         internal network when not every server has access to the internet or if you want to
                         download an unstable/developer version of shelper.
-                        You can combine "shelperexchange" with "shelper --helperupdate <URL>". Nice isnt it? ;)
+                        You can combine "shelperexchange" with "shelper --update <URL>". Nice isnt it? ;)
                         
                         Example:
                         splunk> server named "A" downloads a new shelper version from git
@@ -67,7 +67,7 @@ but without carrying about the correct user permission.
                            (A) --> $> wget https://github.com/secure-diversITy/splunk/archive/dev_splunkhelper.zip
                         3) (A) --> $> shelperexchange 5555
                         4) start the update on server B as user "root" (otherwise you cannot install):
-                           (B) --> #> shelper --helperupdate http://serverA:5555/master.zip (or "dev_splunkhelper.zip")
+                           (B) --> #> shelper --update http://serverA:5555/master.zip (or "dev_splunkhelper.zip")
     
     Non specific splunk> commands (executable on every server type):
     ****************************************************************************************************************
@@ -230,12 +230,12 @@ If you like you can also ensure that even a "*service splunk restart/stop/start*
 Once you have shelper installed you can simply use the amazing *self-update function* coming with shelper!
     
 To do so simply execute:
-- **"splunk --helperupdate"** and you're done!
+- **"shelper --update"** and you're done!
 
 You can do more stuff like the same easy update - but **without internet access**!<br>
 Or you can update the developer edition instead of the master one etc etc.<br>
 Check all your options with:
-- **"splunk --help"**
+- **"shelper --help"**
 
 ### Updating (manually):
 
