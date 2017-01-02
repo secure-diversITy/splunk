@@ -438,13 +438,12 @@ reload_endpoint() {
 }
 
 RELOAD_PROPS(){
-    reload_endpoint /admin/transforms-extracts/_reload
+    reload_endpoint /admin/transforms-extract/_reload
     reload_endpoint /admin/transforms-lookup/_reload
     reload_endpoint /admin/transforms-reload/_reload
 }
 
 RELOAD_TRANSFORMS(){
-    #reload_endpoint /admin/transforms-extracts/_reload
     reload_endpoint /admin/transforms-lookup/_reload
     reload_endpoint /admin/transforms-reload/_reload
 }
