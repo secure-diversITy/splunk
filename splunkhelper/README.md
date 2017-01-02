@@ -98,7 +98,7 @@ but without carrying about the correct user permission.
                                     Thanks for the idea and first realization Simon ;) (https://github.com/simcen/).
                                     (real exec: "splunk _internal call /...") 
                                         
-    Specific shelper> commands (executable on specific server types only):
+    Specific splunk> commands (executable on specific server types only):
     ****************************************************************************************************************
     $> shelpershcapply               Apply configuration bundle within a Search Head Cluster
                                     (real exec: "splunk apply shcluster-bundle -target xxxx")
@@ -136,7 +136,7 @@ but without carrying about the correct user permission.
                                     --> This will work on a Deployment Server (DS) only (will abort if not on DS)
                                         
     
-    General commands (not directly shelper> related):
+    General commands (not directly splunk> related):
     ****************************************************************************************************************    
     $> shelperexchange               Requires python (provides the server module) and perl (for the timeout).
                                     Starts a simple python http server in the CURRENT directory. You can specify
