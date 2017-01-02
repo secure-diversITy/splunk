@@ -690,7 +690,7 @@ case $BIN in
                     *)
                     echo -e "ERROR: Please specify a valid subcommand!"
                     echo -e "You can provide the following specific subcommands/reloads:\n"
-                    echo -e "\tshelperreload [ props| transforms | eventtypes | macros | views | searches | panels | nav | apps | all ]\n\n"
+                    echo -e "\tshelperreload [ props | transforms | eventtypes | macros | views | searches | panels | nav | apps | all ]\n\n"
                     ;;
             esac
         ;;
