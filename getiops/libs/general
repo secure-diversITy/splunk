@@ -1,0 +1,24 @@
+# user vars:
+BONBIN="/usr/sbin/bonnie++"	# the full path to your bonnie++ installation
+                                # get your copy e.g here: https://pkgs.org/download/bonnie++
+IZBIN="/usr/bin/iozone"         # the full path to your iozone installation
+
+# system vars:
+REQBINS="$BONBIN $IZBIN"        # needed for pre-checking binaries
+FUNCS=$EPATH/libs               # function directory of getiops.sh
+BCSV=/tmp/bonnie.csv            # bonnie csv output file
+
+
+### general functions
+
+F_GETMEM(){
+    # detect RAM and verify if valid
+    MEMMB=$(grep -i MemTotal /proc/meminfo | egrep -o '[[:digit:]]+')
+    if [ "$MEMMB" -lt 1 ];then
+        echo "ERROR: CANNOT READ RAM INFO!" 
+        MEMMB=unknown
+    else
+        MEMMB=$((MEMMB / 1024))
+    fi
+    echo $MEMMB
+}

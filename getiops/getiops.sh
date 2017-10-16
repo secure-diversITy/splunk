@@ -1,31 +1,26 @@
 #!/bin/bash
-#########################################################################################
+###########################################################################################
 #
-# Author:       Thomas Fischer <mail@se-di.de>, https://github.com/xdajog
+# Author:       Thomas Fischer <mail | se-di | de>, https://github.com/secure-diversITy/splunk
 # Created:      2015-08-14
 # License:      CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 #
 # Desc:         Stress your storage setup to find out IOPS
 #
-#########################################################################################
+###########################################################################################
 #
 # Usage & Installation: Checkout README !!
 #
 #########################################################################################
 #
-# Last changed: 2015-10-13
+# Last changed: 2017-10-16
 #
 #########################################################################################
 EPATH=$(dirname $0)         # detect path we're running in
+VARFILE=libs/general
 
-# user vars:
-BONBIN="/usr/sbin/bonnie++"	# the full path to your bonnie++ installation
-IZBIN="/usr/bin/iozone"     # the full path to your iozone installation
-
-# system vars:
-REQBINS="$BONBIN $IZBIN"    # needed for pre-checking binaries
-FUNCS=$EPATH/libs           # function directory of getiops.sh
-BCSV=/tmp/bonnie.csv        # bonnie csv output file
+[ ! -f $VARFILE ] && echo "ERROR: missing variable file <$VARFILE>" && exit
+source $VARFILE
 
 # pre-check
 for bin in $(echo $REQBINS);do
@@ -49,7 +44,7 @@ for fc in $(ls $FUNCS);do
 done
 
 F_USAGE(){
-    echo -e "\nBrought to you by Thomas Fischer <mail|se-di.de>\n"
+    echo -e "\nBrought to you by Thomas Fischer <mail | se-di | de>\n"
     echo -e "\n\tSimply execute me to start interactive mode."
     echo -e "\tYou can also switch to batch mode but this will use predefined values then:"
     echo -e "\n\t$0 [a1|a2|a3|a4]\n\n\tWhere:\n"
