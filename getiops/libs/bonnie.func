@@ -31,6 +31,7 @@ F_BONNIE(){
         read -p "[y|n] > " ANSW
         if [ "$ANSW" != "y" ];then
             echo "aborted as requested."
+            exit
         fi
         
         clear
@@ -46,6 +47,7 @@ F_BONNIE(){
     else
         # doing it fully automatic...
         echo "This is not ready yet.."
+        exit
     fi
 
     BSIZE=$(($RAM * 3))
