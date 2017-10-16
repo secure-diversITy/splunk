@@ -3,6 +3,7 @@ F_BONNIE(){
     BATCH=$1
     CSV=$2
     if [ "x$BATCH" == "x0" ];then
+        clear
         # bonnie++ disclaimer
         echo -e "\nDISCLAIMER:\n"
         echo "  First of all: bonnie++ itself can **NOT** display IOPS!! The most people"
@@ -37,9 +38,11 @@ F_BONNIE(){
         clear
         echo -e "\nNow several answers are required to set bonnie up:\n"
         
-        read -p "Splunk is stopped (I do not verify if you lie!) ? [y|n] > " SPLPROC
-        [ "x$SPLPROC" != "xy" ]&&echo -e "\n\tABORTED. Please stop splunk first!\n"&& exit
-        read -p "Your amount of RAM in Megabyte (MB) > " RAM
+        read -p "Splunk is stopped (I do not verify ! so you could lie on your own risk ... ) ? [y|n] > " SPLPROC
+        [ "x$SPLPROC" != "xy" ] && echo -e "\n\tABORTED. Please stop splunk first!\n" && exit
+        DETRAM=$(F_GETMEM)
+        read -p "Your amount of RAM in Megabyte (press ENTER to choose the detected RAM: $DETRAM MB)" RAM
+        [ -z "$RAM" ] && RAM=$DETRAM
         read -p "The mountpoint / storage you want to test > " STORAGE
         read -p "How many tests? (leave empty for default: 5) > " TESTS
         read -p "Number of files getting written (leave empty for default: 100) > " NFILES
