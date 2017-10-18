@@ -681,74 +681,54 @@ ter-captain-info;fi
         while [ ! -z "$1" ];do
             case "$1" in
                     all)
-                    RACT="$1"
+                    RACT="reload_all"
                     shift
-                    echo -e "... reloading all endpoints:"
-                    reload_all
-                    echo -e "\n"
+                    echo -e "... reloading all endpoints"
                     ;;
                     macros)
-                    RACT="$1"
+                    RACT="$RACT reload_macros"
                     shift
-                    echo -e "... reloading macros:"
-                    reload_macros
-                    echo -e "\n"
+                    echo -e "... reloading macros"
                     ;;
                     props)
-                    RACT="$1"
+                    RACT="$RACT RELOAD_PROPS"
                     shift
-                    echo -e "... reloading props:"
-                    RELOAD_PROPS
-                    echo -e "\n"
+                    echo -e "... reloading props"
                     ;;
                     transforms)
-                    RACT="$1"
+                    RACT="$RACT RELOAD_TRANSFORMS"
                     shift
-                    echo -e "... reloading transforms:"
-                    RELOAD_TRANSFORMS
-                    echo -e "\n"
+                    echo -e "... reloading transforms"
                     ;;
                     eventtypes)
-                    RACT="$1"
+                    RACT="$RACT RELOAD_EVENTTYPES"
                     shift
-                    echo -e "... reloading eventtypes:"
-                    RELOAD_EVENTTYPES
-                    echo -e "\n"
+                    echo -e "... reloading eventtypes"
                     ;;
                     views)
-                    RACT="$1"
+                    RACT="$RACT reload_views"
                     shift
-                    echo -e "... reloading views:"
-                    reload_views
-                    echo -e "\n"
+                    echo -e "... reloading views"
                     ;;
                     searches)
-                    RACT="$1"
+                    RACT="$RACT reload_searches"
                     shift
-                    echo -e "... reloading searches:"
-                    reload_searches
-                    echo -e "\n"
+                    echo -e "... reloading searches"
                     ;;
                     panels)
-                    RACT="$1"
+                    RACT="$RACT reload_panels"
                     shift
-                    echo -e "... reloading panels:"
-                    reload_panels
-                    echo -e "\n"
+                    echo -e "... reloading panels"
                     ;;
                     nav)
-                    RACT="$1"
+                    RACT="$RACT reload_nav"
                     shift
-                    echo -e "... reloading navigation:"
-                    reload_nav
-                    echo -e "\n"
+                    echo -e "... reloading navigation"
                     ;;
                     apps)
-                    RACT="$1"
+                    RACT="$RACT reload_apps"
                     shift
-                    echo -e "... reloading apps:"
-                    reload_apps
-                    echo -e "\n"
+                    echo -e "... reloading apps"
                     ;;
                     -auth)
                     AUTH="$2"
@@ -768,6 +748,9 @@ ter-captain-info;fi
             echo -e "You can provide the following specific subcommands/reloads:\n"
             echo -e "\tshelperreload [ props | transforms | eventtypes | macros | views | searches | panels | nav | apps | all ]\n\n"
             exit 1
+        else
+            # reload magic
+            for action in $RACT;do $action ; done
         fi
         ;;
         *) # catch the rest
