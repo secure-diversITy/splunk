@@ -138,32 +138,38 @@ F_HELP(){
 
     Non specific splunk> commands (executable on every server type):
     ****************************************************************************************************************
-    $> shelper                       Provides direct access to splunk> binary but with the powers of shelper!
-                                    (real exec: like "$SPLBIN" )
+    $> shelper                          Provides direct access to splunk> binary but with the powers of shelper!
+                                        (real exec: like "$SPLBIN" )
 
-    $> shelperrestart                Restarts splunk>
-                                    (real exec: "splunk restart")
+    $> shelperrestart                   Restarts splunk>
+                                        (real exec: "splunk restart")
 
-    $> shelperwebrestart             Restarts splunk> web interface
-                                    (real exec: "splunk restartss")
+    $> shelperwebrestart                Restarts splunk> web interface
+                                        (real exec: "splunk restartss")
 
-    $> shelperdebug                   Executes btool debug check
-                                    (real exec: "splunk btool --debug check")
+    $> shelperdebug                     Executes btool debug check
+                                        (real exec: "splunk btool --debug check")
 
-    $> shelperstop                   Stops splunk>
-                                    (real exec: "splunk stop")
+    $> shelperstop                      Stops splunk>
+                                        (real exec: "splunk stop")
 
-    $> shelperstart                  Starts splunk>
-                                    (real exec: "splunk start")
+    $> shelperstart                     Starts splunk>
+                                        (real exec: "splunk start")
 
-    $> shelperstatus                 Status of splunk> and helper processes
-                                    (real exec: "splunk status")
+    $> shelperstatus                    Status of splunk> and helper processes
+                                        (real exec: "splunk status")
 
-    $> shelperreload                 Reloads splunk> without restarting the whole splunkd!!
-                                    You can provide the following specific reloads:
-                                    shelperreload [ macros | transforms | views | searches | panels | nav | apps | all ]
-                                    Thanks for the idea and first realization Simon ;) (https://github.com/simcen/).
-                                    (real exec: "splunk _internal call /...")
+    $> shelperreload [-auth user:password] <ACTION>
+                                        The splunk user credentials here require read+write API capabilities and
+                                        are optional (you will be asked if needed)
+                                        The ACTION is mandatory and can be one or multiple of: 
+                                        props | transforms | eventtypes | macros | views | searches | panels | nav | apps | all
+
+                                        This reloads splunk> without restarting the whole splunkd!
+                                        You can specify multiple actions like: 
+                                            $> shelperreload views nav
+                                        which will reload both in 1 single run
+                                        (real exec: "splunk _internal call /...")
 
     Specific shelper> commands (executable on specific server types only):
     ****************************************************************************************************************
@@ -672,62 +678,73 @@ ter-captain-info;fi
         ;;
         shelperreload) # reload splunk> configs without restarting the whole daemon
         while [ ! -z "$1" ];do
+            RACT=undef
             case "$1" in
                     all)
+                    RACT="$1"
                     shift
                     echo -e "... reloading all endpoints:"
                     reload_all
                     echo -e "\n"
                     ;;
                     macros)
+                    RACT="$1"
                     shift
                     echo -e "... reloading macros:"
                     reload_macros
                     echo -e "\n"
                     ;;
                     props)
+                    RACT="$1"
                     shift
                     echo -e "... reloading props:"
                     RELOAD_PROPS
                     echo -e "\n"
                     ;;
                     transforms)
+                    RACT="$1"
                     shift
                     echo -e "... reloading transforms:"
                     RELOAD_TRANSFORMS
                     echo -e "\n"
                     ;;
                     eventtypes)
+                    RACT="$1"
                     shift
                     echo -e "... reloading eventtypes:"
                     RELOAD_EVENTTYPES
                     echo -e "\n"
                     ;;
                     views)
+                    RACT="$1"
                     shift
                     echo -e "... reloading views:"
                     reload_views
                     echo -e "\n"
                     ;;
                     searches)
+                    RACT="$1"
                     shift
                     echo -e "... reloading searches:"
                     reload_searches
                     echo -e "\n"
                     ;;
                     panels)
+                    RACT="$1"
                     shift
                     echo -e "... reloading panels:"
                     reload_panels
                     echo -e "\n"
                     ;;
                     nav)
+                    RACT="$1"
                     shift
                     echo -e "... reloading navigation:"
                     reload_nav
                     echo -e "\n"
                     ;;
                     apps)
+                    RACT="$1"
                     shift
                     echo -e "... reloading apps:"
                     reload_apps
@@ -735,6 +752,7 @@ ter-captain-info;fi
                     ;;
                     -auth)
                     AUTH="$2"
+                    [ -z "$AUTH" ] && echo "ERROR: missing credentials for auth command" && exit 2
                     shift 2
                     ;;
                     *)
