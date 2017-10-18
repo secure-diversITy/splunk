@@ -432,7 +432,7 @@ reload_endpoint() {
 
     # test if we either are authenticated already or when AUTH given test if that is valid
     if [ ! -z "$AUTH" ];then
-        echo -e "... auth given - checking if they are valid...\n"
+        echo -e "... auth given - checking if those are valid...\n"
         AUTHTEST=$(shelper _internal call / -auth "$AUTH" | grep HTTP | grep -o "200")
     else
         echo -e "... no auth given - checking if we are authenticated already..."
