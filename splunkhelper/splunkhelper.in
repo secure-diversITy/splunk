@@ -635,53 +635,64 @@ case $BIN in
         fi
         ;;
         shelperreload) # reload splunk> configs without restarting the whole daemon
-            case $1 in
+        while [ ! -z "$1" ];do
+            case "$1" in
                     all)
+                    shift
                     echo -e "... reloading all endpoints:"
                     reload_all
                     echo -e "\n"
                     ;;
                     macros)
+                    shift
                     echo -e "... reloading macros:"
                     reload_macros
                     echo -e "\n"
                     ;;
 					props)
+                    shift
                     echo -e "... reloading props:"
                     RELOAD_PROPS
                     echo -e "\n"
                     ;;
                     transforms)
+                    shift
                     echo -e "... reloading transforms:"
                     RELOAD_TRANSFORMS
                     echo -e "\n"
                     ;;
                     eventtypes)
+                    shift
                     echo -e "... reloading eventtypes:"
                     RELOAD_EVENTTYPES
                     echo -e "\n"
                     ;;
                     views)
+                    shift
                     echo -e "... reloading views:"
                     reload_views
                     echo -e "\n"
                     ;;
                     searches)
+                    shift
                     echo -e "... reloading searches:"
                     reload_searches
                     echo -e "\n"
                     ;;
                     panels)
+                    shift
                     echo -e "... reloading panels:"
                     reload_panels
                     echo -e "\n"
                     ;;
                     nav)
+                    shift
                     echo -e "... reloading navigation:"
                     reload_nav
                     echo -e "\n"
                     ;;
                     apps)
+                    shift
                     echo -e "... reloading apps:"
                     reload_apps
                     echo -e "\n"
@@ -692,6 +703,7 @@ case $BIN in
                     echo -e "\tshelperreload [ props | transforms | eventtypes | macros | views | searches | panels | nav | apps | all ]\n\n"
                     ;;
             esac
+        done
         ;;
         *) # catch the rest
         F_HELP
