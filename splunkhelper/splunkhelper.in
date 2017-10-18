@@ -136,6 +136,10 @@ F_HELP(){
                         4) start the update on server B as user "root" (otherwise you cannot install):
                            (B) --> #> shelper --helperupdate http://serverA:5555/master.zip (or "dev_splunkhelper.zip")
 
+    --batch             Will not ask for any user input. If something goes wrong (e.g. authentication credentials are
+                        missing) shelper will abort.
+                        This parameter HAS TO BE the first one and can be used with any shelper command
+
     Non specific splunk> commands (executable on every server type):
     ****************************************************************************************************************
     $> shelper                          Provides direct access to splunk> binary but with the powers of shelper!
@@ -279,8 +283,9 @@ F_HUPDATE(){
     exit
 }
 
-# check if we may need help or update first
-case $1 in
+# check if we may need help, want to update or enforcing batchmode first
+BATCHMODE=no
+case "$1" in
     -h|--help)
     F_HELP
     exit
@@ -288,6 +293,10 @@ case $1 in
     --helperupdate)
     F_CHKUPDREQ
     F_HUPDATE "$2"
+    ;;
+    --batch)
+    BATCHMODE=yes
+    shift
     ;;
 esac
 
@@ -443,6 +452,10 @@ reload_endpoint() {
     # if the above fails or AUTH is empty ask for credentials
     if [ "$AUTHTEST" != "200" ];then
         unset AUTH
+        if [ "$BATCHMODE" == "yes" ];then
+            echo -e "\nAuthentication info missing or wrong! ABORTED!"
+            exit 3
+        fi
         while [ -z "$AUTH" ];do
                 echo -e "\nAuthentication info missing or wrong! Please enter a splunk user & password!\n" && read -p "splunk credentials (format = splunkuser:splunkpassword): " AUTH
                 echo -e "\n"
