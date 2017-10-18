@@ -482,8 +482,7 @@ reload_endpoint() {
     if [ "$STATUS" == 200 ];then
         echo -e "... OK: reloaded '$EPS' successfully"
     else
-        echo -e "\n\t*****************************\n\tWARNING: Reloading $EP ended not successfully!\n\tIF(!) you need that endpoint reloaded consider a full <shelperrestart> instead.\n\t****
-*************************"
+        echo -e "\n\t*****************************\n\tWARNING: Reloading $EP ended not successfully!\n\tIF(!) you need that endpoint reloaded consider a full <shelperrestart> instead.\n\t*****************************"
     fi
 }
 
