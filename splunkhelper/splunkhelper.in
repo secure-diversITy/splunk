@@ -677,8 +677,8 @@ ter-captain-info;fi
         fi
         ;;
         shelperreload) # reload splunk> configs without restarting the whole daemon
+        RACT=undef
         while [ ! -z "$1" ];do
-            RACT=undef
             case "$1" in
                     all)
                     RACT="$1"
@@ -756,12 +756,19 @@ ter-captain-info;fi
                     shift 2
                     ;;
                     *)
-                    echo -e "ERROR: Please specify a valid subcommand!"
+                    echo -e "\nERROR: Please specify a valid subcommand!"
                     echo -e "You can provide the following specific subcommands/reloads:\n"
                     echo -e "\tshelperreload [ props | transforms | eventtypes | macros | views | searches | panels | nav | apps | all ]\n\n"
+                    exit 1
                     ;;
             esac
         done
+        if [ "$RACT" == "undef" ];then
+            echo -e "\nERROR: Please specify a valid subcommand!"
+            echo -e "You can provide the following specific subcommands/reloads:\n"
+            echo -e "\tshelperreload [ props | transforms | eventtypes | macros | views | searches | panels | nav | apps | all ]\n\n"
+            exit 1
+        fi
         ;;
         *) # catch the rest
         F_HELP
