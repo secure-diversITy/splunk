@@ -419,6 +419,32 @@ F_CHECKSHC(){
 
 # reloading splunk (like debug/refresh in the web page). START>
 reload_endpoint() {
+
+    # test if we either are authenticated already or when AUTH given test if that is valid
+    if [ ! -z "$AUTH" ];then
+        echo -e "... auth given - checking if they are valid...\n"
+        AUTHTEST=$(shelper _internal call / -auth "$AUTH" | grep HTTP | grep -o "200")
+    else
+        echo -e "... no auth given - checking if we are authenticated already..."
+        AUTHTEST=$(echo -e "fake\nauth\n" | shelper _internal call / 2>&1 | grep HTTP | grep -o "200")
+        if [ "$AUTHTEST" == "200" ];then echo -e "... already authenticated!\n";else echo -e "... not authenticated (anymore)!\n";fi
+    fi
+
+    # if the above fails or AUTH is empty ask for credentials
+    if [ "$AUTHTEST" != "200" ];then
+        unset AUTH
+        while [ -z "$AUTH" ];do
+                echo -e "\nAuthentication info missing or wrong! Please enter a splunk user & password!\n" && read -p "splunk credentials (format = splunkuser:splunkpassword): " AUTH
+                echo -e "\n"
+                # testing auth! if this fails ask user again!
+                AUTHTEST=$(shelper _internal call / -auth "$AUTH" | grep HTTP | grep -o "200")
+                [ "$AUTHTEST" != "200" ] && unset AUTH
+        done
+    fi
+
+    unset FAUTH
+    [ ! -z "$AUTH" ] && FAUTH="-auth $AUTH"
+
     EP="/services${1}"
     
     # In handler 'collections-conf': Must use user context of 'nobody' when interacting with collection configurations 
@@ -429,7 +455,7 @@ reload_endpoint() {
     EPS=${EPM#/*/}
     
     echo -ne "\treloading '$EPS' --> "
-    STATUS=$(shelper _internal call $EP | grep HTTP | grep -o "200")
+    STATUS=$(shelper _internal call $EP $FAUTH | grep HTTP | grep -o "200")
     if [ "$STATUS" == 200 ];then
         echo -e "... OK: reloaded '$EPS' successfully"
     else
@@ -696,6 +722,10 @@ case $BIN in
                     echo -e "... reloading apps:"
                     reload_apps
                     echo -e "\n"
+                    ;;
+                    -auth)
+                    AUTH="$2"
+                    shift 2
                     ;;
                     *)
                     echo -e "ERROR: Please specify a valid subcommand!"
