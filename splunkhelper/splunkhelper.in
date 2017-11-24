@@ -550,8 +550,7 @@ case $BIN in
         shelper) # a simple wrapper with all given arguments
         # workaround for DAMN $@ handling in bash when fwd them to su
         for i in "$@";do ARGS="$ARGS $i";done
-                if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n... shelper arguments: $ARGS\n" && $SUBIN -c "$SPLBIN $ARGS" - $SPLUSR; else echo && "$SPL
-BIN" "$@";fi
+                if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n... shelper arguments: $ARGS\n" && $SUBIN -c "$SPLBIN $ARGS" - $SPLUSR; else echo && "$SPLBIN" "$@";fi
         ;;
         shelperstop) # stop shelper>
         F_CHKHA
