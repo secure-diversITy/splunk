@@ -138,7 +138,6 @@ F_HELP(){
 
     --batch             Will not ask for any user input. If something goes wrong (e.g. authentication credentials are
                         missing) shelper will abort.
-                        This parameter HAS TO BE the first one and can be used with any shelper command
 
     Non specific splunk> commands (executable on every server type):
     ****************************************************************************************************************
@@ -283,8 +282,7 @@ F_HUPDATE(){
     exit
 }
 
-# check if we may need help, want to update or enforcing batchmode first
-BATCHMODE=no
+# check if we may need help, want to update
 case "$1" in
     -h|--help)
     F_HELP
@@ -293,12 +291,14 @@ case "$1" in
     --helperupdate)
     F_CHKUPDREQ
     F_HUPDATE "$2"
-    ;;
-    --batch)
-    BATCHMODE=yes
-    shift
+    exit
     ;;
 esac
+
+# quick check for batch mode
+BATCHMODE=no
+echo "$@" |grep 'batch' 2>&1 >> /dev/null
+[ $? -eq 0 ] && BATCHMODE=yes
 
 # it may be a good idea to execute the version check for specific commands only so
 # it is prepared as a function to do so later
@@ -438,36 +438,6 @@ F_CHECKSHC(){
 
 # reloading splunk (like debug/refresh in the web page). START>
 reload_endpoint() {
-
-    # test if we either are authenticated already or when AUTH given test if that is valid
-    if [ ! -z "$AUTH" ];then
-        echo -e "... auth given - checking if those are valid...\n"
-        AUTHTEST=$(shelper _internal call / -auth "$AUTH" | grep HTTP | grep -o "200")
-    else
-        echo -e "... no auth given - checking if we are authenticated already..."
-        AUTHTEST=$(echo -e "fake\nauth\n" | shelper _internal call / 2>&1 | grep HTTP | grep -o "200")
-        if [ "$AUTHTEST" == "200" ];then echo -e "... already authenticated!\n";else echo -e "... not authenticated (anymore)!\n";fi
-    fi
-
-    # if the above fails or AUTH is empty ask for credentials
-    if [ "$AUTHTEST" != "200" ];then
-        unset AUTH
-        if [ "$BATCHMODE" == "yes" ];then
-            echo -e "\nAuthentication info missing or wrong! ABORTED!"
-            exit 3
-        fi
-        while [ -z "$AUTH" ];do
-                echo -e "\nAuthentication info missing or wrong! Please enter a splunk user & password!\n" && read -p "splunk credentials (format = splunkuser:splunkpassword): " AUTH
-                echo -e "\n"
-                # testing auth! if this fails ask user again!
-                AUTHTEST=$(shelper _internal call / -auth "$AUTH" | grep HTTP | grep -o "200")
-                [ "$AUTHTEST" != "200" ] && unset AUTH
-        done
-    fi
-
-    unset FAUTH
-    [ ! -z "$AUTH" ] && FAUTH="-auth $AUTH"
-
     EP="/services${1}"
 
     # In handler 'collections-conf': Must use user context of 'nobody' when interacting with collection configurations
@@ -746,7 +716,7 @@ ter-captain-info;fi
                     [ -z "$AUTH" ] && echo "ERROR: missing credentials for auth command" && exit 2
                     shift 2
                     ;;
-                    --batch) shift;;
+                    --batch) shift ;;
                     *)
                     echo -e "\nERROR: Please specify a valid subcommand!"
                     echo -e "You can provide the following specific subcommands/reloads:\n"
@@ -756,11 +726,39 @@ ter-captain-info;fi
             esac
         done
         if [ -z "$RACT" ];then
-            echo -e "\nERROR: Please specify a valid subcommand!"
+            echo -e "\nERROR: RACT empty - Please specify a valid subcommand!"
             echo -e "You can provide the following specific subcommands/reloads:\n"
             echo -e "\tshelperreload [ props | transforms | eventtypes | macros | views | searches | panels | nav | apps | all ]\n\n"
             exit 1
         else
+            # test if we either are authenticated already or when AUTH given test if that is valid
+            if [ ! -z "$AUTH" ];then
+                echo -e "... auth given - checking if those are valid...\n"
+                AUTHTEST=$(shelper _internal call / -auth "$AUTH" | grep HTTP | grep -o "200")
+            else
+                echo -e "... no auth given - checking if we are authenticated already..."
+                AUTHTEST=$(echo -e "fake\nauth\n" | shelper _internal call / 2>&1 | grep HTTP | grep -o "200")
+                if [ "$AUTHTEST" == "200" ];then echo -e "... already authenticated!\n";else echo -e "... not authenticated (anymore)!\n";fi
+            fi
+
+            # if the above fails or AUTH is empty ask for credentials
+            if [ "$AUTHTEST" != "200" ];then
+                unset AUTH
+                if [ "$BATCHMODE" == "yes" ];then
+                    echo -e "\nAuthentication info missing or wrong! ABORTED!"
+                    exit 3
+                fi
+                while [ -z "$AUTH" ];do
+                    echo -e "\nAuthentication info missing or wrong! Please enter a splunk user & password!\n" && read -p "splunk credentials (format = splunkuser:splunkpassword): " AUTH
+                    echo -e "\n"
+                    # testing auth! if this fails ask user again!
+                    AUTHTEST=$(shelper _internal call / -auth "$AUTH" | grep HTTP | grep -o "200")
+                    [ "$AUTHTEST" != "200" ] && unset AUTH
+                done
+            fi
+            unset FAUTH
+            [ ! -z "$AUTH" ] && FAUTH="-auth $AUTH"
+
             # reload magic
             for action in $RACT;do $action ; done
         fi
