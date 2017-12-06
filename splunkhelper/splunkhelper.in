@@ -19,7 +19,7 @@
 #
 #########################################################################################
 #
-# Last changed: 2017-10-18
+# Last changed: 2017-12-06
 #
 #########################################################################################
 
@@ -746,6 +746,7 @@ ter-captain-info;fi
                     [ -z "$AUTH" ] && echo "ERROR: missing credentials for auth command" && exit 2
                     shift 2
                     ;;
+                    --batch) shift;;
                     *)
                     echo -e "\nERROR: Please specify a valid subcommand!"
                     echo -e "You can provide the following specific subcommands/reloads:\n"
