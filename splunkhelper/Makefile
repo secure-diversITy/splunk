@@ -26,6 +26,7 @@ install:
 		for L in "${LINKS}";do \
 				ln -sfv ${BINFIX}/shelper ${BINFIX}/$$L ; \
 		done
+		sed -i "s#BINFIX#${BINFIX}#g" ${BINFIX}/shelper
 
 uninstall:
 		rm -fv ${BINFIX}/shelper ${BINFIX}/splunk*

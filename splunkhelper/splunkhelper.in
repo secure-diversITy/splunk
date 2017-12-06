@@ -734,10 +734,10 @@ ter-captain-info;fi
             # test if we either are authenticated already or when AUTH given test if that is valid
             if [ ! -z "$AUTH" ];then
                 echo -e "... auth given - checking if those are valid...\n"
-                AUTHTEST=$(shelper _internal call / -auth "$AUTH" | grep HTTP | grep -o "200")
+                AUTHTEST=$(BINFIX/shelper _internal call / -auth "$AUTH" | grep HTTP | grep -o "200")
             else
                 echo -e "... no auth given - checking if we are authenticated already..."
-                AUTHTEST=$(echo -e "fake\nauth\n" | shelper _internal call / 2>&1 | grep HTTP | grep -o "200")
+                AUTHTEST=$(echo -e "fake\nauth\n" | BINFIX/shelper _internal call / 2>&1 | grep HTTP | grep -o "200")
                 if [ "$AUTHTEST" == "200" ];then echo -e "... already authenticated!\n";else echo -e "... not authenticated (anymore)!\n";fi
             fi
 
@@ -752,7 +752,7 @@ ter-captain-info;fi
                     echo -e "\nAuthentication info missing or wrong! Please enter a splunk user & password!\n" && read -p "splunk credentials (format = splunkuser:splunkpassword): " AUTH
                     echo -e "\n"
                     # testing auth! if this fails ask user again!
-                    AUTHTEST=$(shelper _internal call / -auth "$AUTH" | grep HTTP | grep -o "200")
+                    AUTHTEST=$(BINFIX/shelper _internal call / -auth "$AUTH" | grep HTTP | grep -o "200")
                     [ "$AUTHTEST" != "200" ] && unset AUTH
                 done
             fi
