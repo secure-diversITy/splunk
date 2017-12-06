@@ -448,7 +448,7 @@ reload_endpoint() {
     EPS=${EPM#/*/}
 
     echo -ne "\treloading '$EPS' --> "
-    STATUS=$(shelper _internal call $EP $FAUTH | grep HTTP | grep -o "200")
+    STATUS=$(BINFIX/shelper _internal call $EP $FAUTH | grep HTTP | grep -o "200")
     if [ "$STATUS" == 200 ];then
         echo -e "... OK: reloaded '$EPS' successfully"
     else
@@ -500,7 +500,7 @@ function reload_searches() {
 
 function reload_all() {
 # fetch all available endpoints which can be reloaded:
-for ep in $(shelper _internal call /services/admin |grep -o "/admin/.*/_reload"|tr "\n" " ");do
+for ep in $(BINFIX/shelper _internal call /services/admin |grep -o "/admin/.*/_reload"|tr "\n" " ");do
     reload_endpoint $ep
 done
 # these cannot be found that way:
