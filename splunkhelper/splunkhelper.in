@@ -136,8 +136,11 @@ F_HELP(){
                         4) start the update on server B as user "root" (otherwise you cannot install):
                            (B) --> #> shelper --update http://serverA:5555/master.zip (or "dev_splunkhelper.zip")
 
-    --batch             Will not ask for any user input. If something goes wrong (e.g. authentication credentials are
-                        missing) shelper will abort.
+    --batch                     Will not ask for any user input. If something goes wrong (e.g. authentication credentials are
+                                missing) shelper will abort.
+
+    -auth user:password         Every(!) command which require authentication against the splunk> API (e.g. shelperreload)
+     (SINGLE dash!)             accepts this parameter to set user and password. 
 
     Non specific splunk> commands (executable on every server type):
     ****************************************************************************************************************
@@ -162,11 +165,8 @@ F_HELP(){
     $> shelperstatus                    Status of splunk> and helper processes
                                         (real exec: "splunk status")
 
-    $> shelperreload [-auth user:password] <ACTION>
-                                        The splunk user credentials here require read+write API capabilities and
-                                        are optional (you will be asked if needed)
-                                        The ACTION is mandatory and can be one or multiple of: 
-                                        props | transforms | eventtypes | macros | views | searches | panels | nav | apps | all
+    $> shelperreload <ACTION>           The ACTION is mandatory and can be one or multiple of: 
+       optional: [ -auth user:pass]     props | transforms | eventtypes | macros | views | searches | panels | nav | apps | all
 
                                         This reloads splunk> without restarting the whole splunkd!
                                         You can specify multiple actions like: 
@@ -175,46 +175,47 @@ F_HELP(){
                                         (real exec: "splunk _internal call /...")
 
     Specific shelper> commands (executable on specific server types only):
+    All these commands accept optional: [ -auth user:pass]
     ****************************************************************************************************************
     $> shelpershcapply [Member FQDN] Apply configuration bundle within a Search Head Cluster
-                                    (real exec: "splunk apply shcluster-bundle -target xxxx")
-                                    You can execute this on the Deployer or on the CM because
-                                    it will ask you for a SH cluster member.
-                                    If you execute it on a SH cluster member server it will catch the cluster members
-                                    for you and their status for easy copy & paste
+                                     (real exec: "splunk apply shcluster-bundle -target xxxx")
+                                     You can execute this on the Deployer or on the CM because
+                                     it will ask you for a SH cluster member.
+                                     If you execute it on a SH cluster member server it will catch the cluster members
+                                     for you and their status for easy copy & paste
 
     $> shelpershcshowstatus          Shows the status of your Search Head Cluster
-                                    (real exec: splunk show shcluster-status)
-                                    Can be executed on any Search Head member or captain but nowhere else.
+                                     (real exec: splunk show shcluster-status)
+                                     Can be executed on any Search Head member or captain but nowhere else.
 
     $> shelpershclistcaptain         Lists the current Captain of the Search Head Cluster
-                                    (real exec: splunk list shcluster-captain-info)
-                                    Can be executed on any Search Head member or captain but nowhere else.
+                                     (real exec: splunk list shcluster-captain-info)
+                                     Can be executed on any Search Head member or captain but nowhere else.
 
     $> shelpercmapply                Apply configuration bundle within a index cluster
                                      (real exec: "splunk apply cluster-bundle")
-                                    --> This will work on a Cluster Master (CM) only (will abort if not on CM)
+                                     --> This will work on a Cluster Master (CM) only (will abort if not on CM)
 
     $> shelperclustershow            Shows the current cluster status
-                                    (real exec: "splunk show cluster-status")
-                                    --> This will work on a Cluster Master (CM) only (will abort if not on CM)
+                                     (real exec: "splunk show cluster-status")
+                                     --> This will work on a Cluster Master (CM) only (will abort if not on CM)
 
     $> shelperclustershowbundle      Shows the current status of cluster bundle config
-                                    (real exec: "splunk show cluster-bundle-status")
-                                    --> This will work on a Cluster Master (CM) only (will abort if not on CM)
+                                     (real exec: "splunk show cluster-bundle-status")
+                                     --> This will work on a Cluster Master (CM) only (will abort if not on CM)
 
     $> shelperclusterlistpeers       Shows the peers status connected to an index cluster
-                                    (real exec: "splunk list cluster-peers")
-                                    --> This will work on a Cluster Master (CM) only (will abort if not on CM)
+                                     (real exec: "splunk list cluster-peers")
+                                     --> This will work on a Cluster Master (CM) only (will abort if not on CM)
 
     $> shelperdsreload               Reloads the deploymentservers classes to deploy changes if needed.
-                                    (real exec: "splunk reload deploy-server")
-                                    --> This will work on a Deployment Server (DS) only (will abort if not on DS)
+                                     (real exec: "splunk reload deploy-server")
+                                     --> This will work on a Deployment Server (DS) only (will abort if not on DS)
 
 
     General commands (not directly shelper> related):
     ****************************************************************************************************************
-    $> shelperexchange               Requires python (provides the server module) and perl (for the timeout).
+    $> shelperexchange              Requires python (provides the server module) and perl (for the timeout).
                                     Starts a simple python http server in the CURRENT directory. You can specify
                                     a tcp port - if not: default is 8888.
                                     **DUE TO SECURITY REASONS IT WILL STOP AFTER '$HTTPTIMER' SECONDS AUTOMATICALLY!**
