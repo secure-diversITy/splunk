@@ -583,7 +583,7 @@ case $BIN in
                 if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN status" - $SPLUSR; else echo && "$SPLBIN" status;fi
         ;;
         shelpershcdeploy|shelpershcapply) # shelper> SH cluster deploy configuration bundle
-        [ ! -z "$2" ] && SHCMEMB="$2" && echo defined shc member address on the command line..
+        [ ! -z "$1" ] && SHCMEMB="$1" && echo ... defined shc member address on the command line
         if [ ! "$ID" == "$SPLUSR" ];then
             echo -e "... dropping privileges to user <$SPLUSR>"
             echo -e "... trying to get status and IPs of your SH cluster:"
@@ -605,11 +605,15 @@ case $BIN in
             done
         fi
         SHCURI="https://${SHCMEMB}:${SHCPORT}"
+
+        unset OARG
+        [ $BATCHMODE == "yes" ] && OARG="--answer-yes"
+
         if [ ! "$ID" == "$SPLUSR" ];then
-            echo -e "\n... now dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN apply shcluster-bundle -target $SHCURI" - $SPLUSR
+            echo -e "\n... now dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN apply $OARG shcluster-bundle -target $SHCURI" - $SPLUSR
         else
             echo
-            "$SPLBIN" apply shcluster-bundle -target "$SHCURI"
+            "$SPLBIN" apply $OARG shcluster-bundle -target "$SHCURI"
         fi
         ;;
         shelpershcshowstatus) # show SH cluster status
