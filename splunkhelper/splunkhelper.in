@@ -2,7 +2,7 @@
 #########################################################################################
 #
 # Author:       Thomas Fischer <mail@se-di.de>, https://github.com/secure-diversITy
-# Created:      2015-08-13
+# Copyright:    2015-2018
 # License:      CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 #
 # Desc:
@@ -19,7 +19,7 @@
 #
 #########################################################################################
 #
-# Last changed: 2017-12-06
+# Last changed: 2018-03-22
 #
 #########################################################################################
 
@@ -320,9 +320,7 @@ F_VERSION(){
         # check if version is supported
         if [ "$SVERSION" -lt "$SUPPVER" ]&&[ -z "$FORCEOLD" ];then
             echo -e "\n*******************************************************************"
-            echo -e "WARNING: Your splunk> version ($SVERSION) is older then the\nsupported version ($SUPPVER)...\n\nTherefore I cannot guarantee that this script works for you in all cases..
-\n\n(Well this is MOSTLY relevant for special commands like shelpershcdeploy etc.\nStart/Stop/Status are working fine in older versions)\n\nYou can set FORCEOLD to avoid this message from app
-earing"
+            echo -e "WARNING: Your splunk> version ($SVERSION) is older then the\nsupported version ($SUPPVER)...\n\nTherefore I cannot guarantee that this script works for you in all cases..\n\n(Well this is MOSTLY relevant for special commands like shelpershcdeploy etc.\nStart/Stop/Status are working fine in older versions)\n\nYou can set FORCEOLD to avoid this message from appearing"
             echo -e "*******************************************************************\n\n"
             read -p "Do you still want to continue (press ENTER or CTRL+C to abort)?" ANS
             [ ! -z "$ANS" ]&& echo "... exiting with $ANS " && exit
@@ -352,8 +350,7 @@ F_CHKHA(){
         if [ $HA -ne 0 ];then
             while [ "$RANS" -ne 0 ];do
                 echo -e "\n*******************************************************************"
-                echo -e "WARNING:\nThis host seems to have some kind of 'High Availability' \ntool enabled (e.g. 'keepalived').\nThis checks NOT for master/slave state but for HA in place onl
-y.\n\nTHINK TWICE BEFORE PROCEEDING!"
+                echo -e "WARNING:\nThis host seems to have some kind of 'High Availability' \ntool enabled (e.g. 'keepalived').\nThis checks NOT for master/slave state but for HA in place only.\n\nTHINK TWICE BEFORE PROCEEDING!"
                 echo -e "*******************************************************************\n"
                 echo -e "(You can prevent this message from appearing by setting \n'HACHECK=0' in $USERCONFIG)\n"
                 read -p "Try your changes on a SLAVE node first! Do you want to ABORT? (y/n) : " ANS
@@ -401,8 +398,7 @@ F_CHECKDS(){
     # stanza defined in the serverclass.conf:
     grep -e "^\[" $SPLDIR/etc/system/local/serverclass.conf > /dev/null
     MERR=$?
-    if [ $MERR -ne 0 ];then echo -e "\n\tERROR: This command can be executed on a Deployment Server only!\n\tserverclass.conf has no valid stanza so I believe it is not a active deployment se
-rver.\n\tOnce you have configured a serverclass this command will work.\n\n\tABORTED\n\n" && exit $MERR ;fi
+    if [ $MERR -ne 0 ];then echo -e "\n\tERROR: This command can be executed on a Deployment Server only!\n\tserverclass.conf has no valid stanza so I believe it is not a active deployment server.\n\tOnce you have configured a serverclass this command will work.\n\n\tABORTED\n\n" && exit $MERR ;fi
 }
 
 # checking if we're running on a SHC (when needed) and hard exit if not!
@@ -452,7 +448,7 @@ reload_endpoint() {
     if [ "$STATUS" == 200 ];then
         echo -e "... OK: reloaded '$EPS' successfully"
     else
-        echo -e "\n\t*****************************\n\tWARNING: Reloading $EP ended not successfully!\n\tIF(!) you need that endpoint reloaded consider a full <shelperrestart> instead.\n\t*****************************"
+        echo -e "\n\t*****************************\n\tWARNING: Reloading $EP ended not successfully!\n\tIF(!) you need that endpoint reloaded consider a full <shelperrestart> instead.\n\t****************************"
     fi
 }
 
@@ -537,8 +533,7 @@ case $BIN in
                 if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN restartss" - $SPLUSR; else echo && "$SPLBIN" restartss;fi
         ;;
         shelperdebug) # use shelper> btool debug
-                if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN btool --debug check" - $SPLUSR; else echo && "$SPLBIN" btool --deb
-ug check;fi
+                if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN btool --debug check" - $SPLUSR; else echo && "$SPLBIN" btool --debug check;fi
         ;;
         shelperstatus) # shelper> status
                 if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN status" - $SPLUSR; else echo && "$SPLBIN" status;fi
@@ -552,8 +547,7 @@ ug check;fi
             $SPLBIN list shcluster-members |grep -Ei "(host_port_pair|status)" |cut -d":" -f2
         fi
         SERR=$?
-        if [ $SERR -ne 0 ];then echo -e "\n\tWarning: cannot detect SH cluster info.\nYou need to find out an active cluster member manually.\nTo catch that automatically execute $BIN on a SH
- cluster member\n" ;fi
+        if [ $SERR -ne 0 ];then echo -e "\n\tWarning: cannot detect SH cluster info.\nYou need to find out an active cluster member manually.\nTo catch that automatically execute $BIN on a SH cluster member\n" ;fi
 
         if [ -z "$SHCMEMB" ];then
             while [ -z "$SHCMEMB" ];do
@@ -571,13 +565,11 @@ ug check;fi
         ;;
         shelpershcshowstatus) # show SH cluster status
         F_CHECKSHC
-        if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN show shcluster-status" - $SPLUSR; else echo && "$SPLBIN" show shcluster-st
-atus;fi
+        if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN show shcluster-status" - $SPLUSR; else echo && "$SPLBIN" show shcluster-status;fi
         ;;
         shelpershclistcaptain) # show current SH captain
         F_CHECKSHC
-        if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN list shcluster-captain-info" - $SPLUSR; else echo && "$SPLBIN" list shclus
-ter-captain-info;fi
+        if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN list shcluster-captain-info" - $SPLUSR; else echo && "$SPLBIN" list shcluster-captain-info;fi
         ;;
         shelpercmdeploy|shelpercmapply) # shelper> Index cluster deploy configuration bundle
         # check if we're runnin on a CM first!
