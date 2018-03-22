@@ -295,9 +295,10 @@ case "$1" in
     ;;
 esac
 
+ALLARGS="$@"
 # quick check for batch mode
 BATCHMODE=no
-echo "$@" |grep 'batch' 2>&1 >> /dev/null
+echo "$ALLARGS" |grep 'batch' 2>&1 >> /dev/null
 [ $? -eq 0 ] && BATCHMODE=yes
 
 # it may be a good idea to execute the version check for specific commands only so
@@ -380,9 +381,13 @@ F_CHECKCM(){
     if [ ! "$ID" == "$SPLUSR" ];then
         echo -e "... dropping privileges to user <$SPLUSR> to get cluster-info\n"
         $SUBIN -c "$SPLBIN list master-info" - $SPLUSR > /dev/null
+        # API authenticate 
+        F_AUTH
         MERR=$?
         if [ $MERR -ne 0 ];then echo -e "\n\tERROR: This command can be executed on a Cluster Master only!\n" && exit $MERR ;fi
     else
+        # API authenticate 
+        F_AUTH        
         echo
         "$SPLBIN" list master-info > /dev/null
          MERR=$?
@@ -405,6 +410,8 @@ F_CHECKDS(){
 F_CHECKSHC(){
     if [ ! "$ID" == "$SPLUSR" ];then
         echo -e "... dropping privileges to user <$SPLUSR> to get shc cluster info\n"
+        # API authenticate 
+        F_AUTH        
         $SUBIN -c "$SPLBIN list shcluster-config" - $SPLUSR > /dev/null
         MERR=$?
         if [ $MERR -ne 0 ];then
@@ -422,9 +429,9 @@ F_CHECKSHC(){
             echo -e "\tIf you use the default management port you need to specify the hostname/IP only.\n"
             read -p "(e.g.: '172.1.2.50:28089' or 'my.fqdn.com') > " SHCMEMB
         fi
-
-
     else
+        # API authenticate 
+        F_AUTH
         echo
         "$SPLBIN" list shcluster-config > /dev/null
          MERR=$?
@@ -506,6 +513,42 @@ reload_endpoint /data/ui/views/_reload
 }
 # <END: reloading shelper (like debug/refresh in the web page)
 
+# authenticate against the splunk API. checks for auth param and if not set ask for it
+F_AUTH(){
+    case $ALLARGS in 
+        -auth)
+        AUTH="$2"
+        [ -z "$AUTH" ] && echo "ERROR: missing credentials for auth command" && exit 2
+        shift 2
+        ;;
+        *) shift ;;
+    esac
+    # test if we either are authenticated already or when AUTH given test if that is valid
+    if [ ! -z "$AUTH" ];then
+        echo -e "... auth given - checking if those are valid...\n"
+        AUTHTEST=$(BINFIX/shelper _internal call / -auth "$AUTH" | grep HTTP | grep -o "200")
+    else
+        echo -e "... no auth given - checking if we are authenticated already..."
+        AUTHTEST=$(echo -e "fake\nauth\n" | BINFIX/shelper _internal call / 2>&1 | grep HTTP | grep -o "200")
+        if [ "$AUTHTEST" == "200" ];then echo -e "... already authenticated!\n";else echo -e "... not authenticated (anymore)!\n";fi
+    fi
+    # if the above fails or AUTH is empty ask for credentials
+    if [ "$AUTHTEST" != "200" ];then
+        unset AUTH
+        if [ "$BATCHMODE" == "yes" ];then
+            echo -e "\nAuthentication info missing or wrong! ABORTED!"
+            exit 3
+        fi
+        while [ -z "$AUTH" ];do
+            echo -e "\nNot authenticated or authentication missing/wrong! Please enter a splunk user & password!\n" && read -p "splunk credentials (format = splunkuser:splunkpassword): " AUTH
+            echo -e "\n"
+            # testing auth! if this fails ask user again!
+            AUTHTEST=$(BINFIX/shelper _internal call / -auth "$AUTH" | grep HTTP | grep -o "200")
+            [ "$AUTHTEST" != "200" ] && unset AUTH
+        done
+    fi
+}
+
 # and act accordingly:
 case $BIN in
         # just a site note: I check for the splunk user and not for root here. Why?
@@ -542,8 +585,12 @@ case $BIN in
         if [ ! "$ID" == "$SPLUSR" ];then
             echo -e "... dropping privileges to user <$SPLUSR>"
             echo -e "... trying to get status and IPs of your SH cluster:"
+            # API authenticate 
+            F_AUTH
             $SUBIN -c "$SPLBIN list shcluster-members" - $SPLUSR |grep -Ei "(host_port_pair|status)" |cut -d":" -f2
         else
+            # API authenticate 
+            F_AUTH
             $SPLBIN list shcluster-members |grep -Ei "(host_port_pair|status)" |cut -d":" -f2
         fi
         SERR=$?
@@ -564,15 +611,17 @@ case $BIN in
         fi
         ;;
         shelpershcshowstatus) # show SH cluster status
+        # check install
         F_CHECKSHC
         if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN show shcluster-status" - $SPLUSR; else echo && "$SPLBIN" show shcluster-status;fi
         ;;
         shelpershclistcaptain) # show current SH captain
+        # check install
         F_CHECKSHC
         if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN list shcluster-captain-info" - $SPLUSR; else echo && "$SPLBIN" list shcluster-captain-info;fi
         ;;
         shelpercmdeploy|shelpercmapply) # shelper> Index cluster deploy configuration bundle
-        # check if we're runnin on a CM first!
+        # check install
         F_CHECKCM
         if [ ! "$ID" == "$SPLUSR" ];then
             echo -e "... dropping privileges to user <$SPLUSR>\n"
@@ -585,7 +634,7 @@ case $BIN in
         shelperclustershowbundle
         ;;
         shelperclustershow) # shows the cluster bundle status
-        # check if we're runnin on a CM first!
+        # check install
         F_CHECKCM
         if [ ! "$ID" == "$SPLUSR" ];then
             echo -e "... dropping privileges to user <$SPLUSR>\n"
@@ -596,7 +645,7 @@ case $BIN in
         fi
         ;;
         shelperclustershowbundle) # shows the cluster bundle status
-        # check if we're runnin on a CM first!
+        # check install
         F_CHECKCM
         if [ ! "$ID" == "$SPLUSR" ];then
             echo -e "... dropping privileges to user <$SPLUSR>\n"
@@ -723,34 +772,8 @@ case $BIN in
             echo -e "\tshelperreload [ props | transforms | eventtypes | macros | views | searches | panels | nav | apps | all ]\n\n"
             exit 1
         else
-            # test if we either are authenticated already or when AUTH given test if that is valid
-            if [ ! -z "$AUTH" ];then
-                echo -e "... auth given - checking if those are valid...\n"
-                AUTHTEST=$(BINFIX/shelper _internal call / -auth "$AUTH" | grep HTTP | grep -o "200")
-            else
-                echo -e "... no auth given - checking if we are authenticated already..."
-                AUTHTEST=$(echo -e "fake\nauth\n" | BINFIX/shelper _internal call / 2>&1 | grep HTTP | grep -o "200")
-                if [ "$AUTHTEST" == "200" ];then echo -e "... already authenticated!\n";else echo -e "... not authenticated (anymore)!\n";fi
-            fi
-
-            # if the above fails or AUTH is empty ask for credentials
-            if [ "$AUTHTEST" != "200" ];then
-                unset AUTH
-                if [ "$BATCHMODE" == "yes" ];then
-                    echo -e "\nAuthentication info missing or wrong! ABORTED!"
-                    exit 3
-                fi
-                while [ -z "$AUTH" ];do
-                    echo -e "\nAuthentication info missing or wrong! Please enter a splunk user & password!\n" && read -p "splunk credentials (format = splunkuser:splunkpassword): " AUTH
-                    echo -e "\n"
-                    # testing auth! if this fails ask user again!
-                    AUTHTEST=$(BINFIX/shelper _internal call / -auth "$AUTH" | grep HTTP | grep -o "200")
-                    [ "$AUTHTEST" != "200" ] && unset AUTH
-                done
-            fi
-            unset FAUTH
-            [ ! -z "$AUTH" ] && FAUTH="-auth $AUTH"
-
+            # API authenticate 
+            F_AUTH
             # reload magic
             for action in $RACT;do $action ; done
         fi
