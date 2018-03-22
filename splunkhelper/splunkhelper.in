@@ -583,7 +583,7 @@ case $BIN in
                 if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN status" - $SPLUSR; else echo && "$SPLBIN" status;fi
         ;;
         shelpershcdeploy|shelpershcapply) # shelper> SH cluster deploy configuration bundle
-        if [ ! -z "$2" ] && SHCMEMB="$2"
+        [ ! -z "$2" ] && SHCMEMB="$2"
         if [ ! "$ID" == "$SPLUSR" ];then
             echo -e "... dropping privileges to user <$SPLUSR>"
             echo -e "... trying to get status and IPs of your SH cluster:"
