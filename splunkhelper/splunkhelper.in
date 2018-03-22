@@ -114,7 +114,7 @@ F_HELP(){
     **************
 
     -h | --help         This help/usage info
-    --helperupdate      Easy self-update the shelper. Needs root permission.
+    --update            Easy self-update the shelper. Needs root permission.
                         You CAN specify an URL to the update ZIP - if you like. Otherwise the default update
                         URL is used (stable releases by default).
                         It will download the new version and install it automatically afterwards.
@@ -122,8 +122,8 @@ F_HELP(){
                         Defining a custom update URL enables you to deploy a new version of shelper for your
                         internal network when not every server has access to the internet or if you want to
                         download an unstable/developer version of shelper.
-                        You can combine "shelperexchange" with "shelper --helperupdate <URL>". Nice isnt it? ;)
-
+                        You can combine "shelperexchange" with "shelper --update <URL>". Nice isnt it? ;)
+                        
                         Example:
                         splunk> server named "A" downloads a new shelper version from git
                         and you want to deploy it on splunk> server B:
@@ -134,7 +134,7 @@ F_HELP(){
                            (A) --> $> wget https://github.com/secure-diversITy/splunk/archive/dev_splunkhelper.zip
                         3) (A) --> $> shelperexchange 5555
                         4) start the update on server B as user "root" (otherwise you cannot install):
-                           (B) --> #> shelper --helperupdate http://serverA:5555/master.zip (or "dev_splunkhelper.zip")
+                           (B) --> #> shelper --update http://serverA:5555/master.zip (or "dev_splunkhelper.zip")
 
     --batch             Will not ask for any user input. If something goes wrong (e.g. authentication credentials are
                         missing) shelper will abort.
@@ -221,7 +221,7 @@ F_HELP(){
                                     Really helpful when deploying things..
                                     (real exec: "python -m SimpleHTTPServer <PORT>")
                                     Really helpful for updating shelper in large environments!
-                                    Checkout --helperupdate to combine shelperexchange with updating.
+                                    Checkout --update to combine shelperexchange with updating.
 
                                     Example 1:
                                     "$> shelperexchange" --> will start a webserver in the current directory
@@ -258,7 +258,7 @@ F_HUPDATE(){
     [ -z "$UPDFILE" ]&&echo -e "\n\tERROR: Cannot extract the file name from path <$UPDATEURL>. ABORTED.\n" && exit 3
     if [ ! "$ID" == "root" ];then
         echo -e "\n\tSelf-updating shelper needs root permission (you're $ID) so you either need to switch to user <root>"
-        echo -e "\tor start again with sudo (sudo shelper --helperupdate)\n"
+        echo -e "\tor start again with sudo (sudo shelper --update)\n"
         exit
     else
         echo -e "... root permission available so we can proceed.."
@@ -288,7 +288,7 @@ case "$1" in
     F_HELP
     exit
     ;;
-    --helperupdate)
+    --update|--helperupdate)
     F_CHKUPDREQ
     F_HUPDATE "$2"
     exit
