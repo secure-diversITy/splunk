@@ -68,6 +68,9 @@ but without carrying about the correct user permission.
                         3) (A) --> $> shelperexchange 5555
                         4) start the update on server B as user "root" (otherwise you cannot install):
                            (B) --> #> shelper --update http://serverA:5555/master.zip (or "dev_splunkhelper.zip")
+
+    --batch             Will not ask for any user input. If something goes wrong (e.g. authentication credentials are
+                        missing) shelper will abort.
     
     Non specific splunk> commands (executable on every server type):
     ****************************************************************************************************************
