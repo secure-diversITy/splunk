@@ -1,8 +1,8 @@
 #!/bin/bash
 #########################################################################################
 #
-# Author:       Thomas Fischer <mail@se-di.de>, https://github.com/secure-diversITy
-# Copyright:    2015-2018
+# Author:       Thomas Fischer <mail@sedi.one>, https://github.com/secure-diversITy
+# Copyright:    2015-2019
 # License:      CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 #
 # Desc:
@@ -19,7 +19,7 @@
 #
 #########################################################################################
 #
-# Last changed: 2018-09-11
+# Last changed: 2019-08-30
 #
 #########################################################################################
 
@@ -88,6 +88,8 @@ SUPPVER=620                         # The supported and tested minimal splunk> v
 SPLBIN="$SPLDIR/bin/splunk"             # the generated full path to splunk> binary
 ID=$(id -un)                                # get the effective - not real user name
 UPDTMP="/tmp/splunkhelperupdate"    # temporary path when updating splunkhelper
+
+export PATH=$PATH:$(dirname $0)
 
 # ensure we have root perms. we will drop privs when needed later.
 if [ "$ID" != "root" ]&&[ "$ID" != "$SPLUSR" ];then
@@ -636,7 +638,8 @@ case $BIN in
         else
             echo
             "$SPLBIN" list master-info > /dev/null
-            "$SPLBIN" apply cluster-bundle
+	    [ $BATCHMODE == "yes" ] && OARG="--answer-yes"
+            "$SPLBIN" apply cluster-bundle $OARG
         fi
         shelperclustershowbundle
         ;;
