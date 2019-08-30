@@ -19,7 +19,7 @@
 #
 #########################################################################################
 #
-# Last changed: 2018-03-22
+# Last changed: 2018-09-11
 #
 #########################################################################################
 
@@ -461,12 +461,13 @@ reload_endpoint() {
 }
 
 RELOAD_PROPS(){
-    reload_endpoint /admin/transforms-extract/_reload
-    reload_endpoint /admin/transforms-lookup/_reload
-    reload_endpoint /admin/transforms-reload/_reload
+    reload_endpoint /admin/props-extract/_reload
+    reload_endpoint /admin/props-lookup/_reload
+    reload_endpoint /admin/props-eval/_reload
 }
 
 RELOAD_TRANSFORMS(){
+    reload_endpoint /admin/transforms-extract/_reload
     reload_endpoint /admin/transforms-lookup/_reload
     reload_endpoint /admin/transforms-reload/_reload
 }
