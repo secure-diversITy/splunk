@@ -595,11 +595,11 @@ case $BIN in
             echo -e "... trying to get status and IPs of your SH cluster:"
             # API authenticate 
             F_AUTH $ALLARGS
-            $SUBIN -c "$SPLBIN list shcluster-members" - $SPLUSR |grep -Ei "(host_port_pair|status)" |cut -d":" -f2
+            [ -z "$SHCMEMB" ] && $SUBIN -c "$SPLBIN list shcluster-members" - $SPLUSR |grep -Ei "(host_port_pair|status)" |cut -d":" -f2
         else
             # API authenticate 
             F_AUTH $ALLARGS
-            $SPLBIN list shcluster-members |grep -Ei "(host_port_pair|status)" |cut -d":" -f2
+            [ -z "$SHCMEMB" ] && $SPLBIN list shcluster-members |grep -Ei "(host_port_pair|status)" |cut -d":" -f2
         fi
         SERR=$?
         if [ $SERR -ne 0 ];then echo -e "\n\tWarning: cannot detect SH cluster info.\nYou need to find out an active cluster member manually.\nTo catch that automatically execute $BIN on a SH cluster member\n" ;fi
