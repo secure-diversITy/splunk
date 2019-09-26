@@ -589,7 +589,7 @@ case $BIN in
                 if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n" && $SUBIN -c "$SPLBIN status" - $SPLUSR; else echo && "$SPLBIN" status;fi
         ;;
         shelpershcdeploy|shelpershcapply) # shelper> SH cluster deploy configuration bundle
-        [ ! -z "$1" ] && SHCMEMB="$1" && echo ... defined shc member address on the command line && SERR=0
+        [ ! -z "$1" ] && SHCMEMB="$1" && echo ... defined shc member address on the command line
         if [ ! "$ID" == "$SPLUSR" ];then
             echo -e "... dropping privileges to user <$SPLUSR>"
             echo -e "... trying to get status and IPs of your SH cluster:"
@@ -602,7 +602,7 @@ case $BIN in
             [ -z "$SHCMEMB" ] && $SPLBIN list shcluster-members |grep -Ei "(host_port_pair|status)" |cut -d":" -f2
         fi
         SERR=$?
-        if [ $SERR -ne 0 ];then echo -e "\n\tWarning: cannot detect SH cluster info.\nYou need to find out an active cluster member manually.\nTo catch that automatically execute $BIN on a SH cluster member\n" ;fi
+        if [ $SERR -ne 0 ] && [ -z "$SHCMEMB" ];then echo -e "\n\tWarning: cannot detect SH cluster info.\nYou need to find out an active cluster member manually.\nTo catch that automatically execute $BIN on a SH cluster member\n" ;fi
 
         if [ -z "$SHCMEMB" ];then
             while [ -z "$SHCMEMB" ];do
