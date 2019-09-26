@@ -19,7 +19,7 @@
 #
 #########################################################################################
 #
-# Last changed: 2019-08-30
+# Last changed: 2019-09-26
 #
 #########################################################################################
 
@@ -385,12 +385,12 @@ F_CHECKCM(){
         echo -e "... dropping privileges to user <$SPLUSR> to get cluster-info\n"
         $SUBIN -c "$SPLBIN list master-info" - $SPLUSR > /dev/null
         # API authenticate 
-        F_AUTH
+        F_AUTH $ALLARGS
         MERR=$?
         if [ $MERR -ne 0 ];then echo -e "\n\tERROR: This command can be executed on a Cluster Master only!\n" && exit $MERR ;fi
     else
         # API authenticate 
-        F_AUTH        
+        F_AUTH $ALLARGS
         echo
         "$SPLBIN" list master-info > /dev/null
          MERR=$?
@@ -414,7 +414,7 @@ F_CHECKSHC(){
     if [ ! "$ID" == "$SPLUSR" ];then
         echo -e "... dropping privileges to user <$SPLUSR> to get shc cluster info\n"
         # API authenticate 
-        F_AUTH        
+        F_AUTH $ALLARGS
         $SUBIN -c "$SPLBIN list shcluster-config" - $SPLUSR > /dev/null
         MERR=$?
         if [ $MERR -ne 0 ];then
@@ -434,7 +434,7 @@ F_CHECKSHC(){
         fi
     else
         # API authenticate 
-        F_AUTH
+        F_AUTH $ALLARGS
         echo
         "$SPLBIN" list shcluster-config > /dev/null
          MERR=$?
@@ -519,14 +519,17 @@ reload_endpoint /data/ui/views/_reload
 
 # authenticate against the splunk API. checks for auth param and if not set ask for it
 F_AUTH(){
-    case $ALLARGS in 
-        -auth)
-        AUTH="$2"
-        [ -z "$AUTH" ] && echo "ERROR: missing credentials for auth command" && exit 2
-        shift 2
-        ;;
-        *) shift ;;
-    esac
+    while [ ! -z "$1" ] ;do
+        case $1 in
+            -auth)
+            AUTH="$2"
+            [ -z "$AUTH" ] && echo "ERROR: missing credentials for auth command" && exit 2
+            break
+            ;;
+            *) shift ;;
+        esac
+    done
+
     # test if we either are authenticated already or when AUTH given test if that is valid
     if [ ! -z "$AUTH" ];then
         echo -e "... auth given - checking if those are valid...\n"
@@ -591,11 +594,11 @@ case $BIN in
             echo -e "... dropping privileges to user <$SPLUSR>"
             echo -e "... trying to get status and IPs of your SH cluster:"
             # API authenticate 
-            F_AUTH
+            F_AUTH $ALLARGS
             $SUBIN -c "$SPLBIN list shcluster-members" - $SPLUSR |grep -Ei "(host_port_pair|status)" |cut -d":" -f2
         else
             # API authenticate 
-            F_AUTH
+            F_AUTH $ALLARGS
             $SPLBIN list shcluster-members |grep -Ei "(host_port_pair|status)" |cut -d":" -f2
         fi
         SERR=$?
@@ -783,7 +786,7 @@ case $BIN in
             exit 1
         else
             # API authenticate 
-            F_AUTH
+            F_AUTH $ALLARGS
             # reload magic
             for action in $RACT;do $action ; done
         fi
