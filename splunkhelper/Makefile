@@ -1,5 +1,6 @@
 BINFIX = /usr/local/bin
 MANF = /etc/shelper.manifest
+ERR = 0
 USER = root
 GROUP = root
 
@@ -23,8 +24,9 @@ LINKS = "shelperrestart \
 		shelperexchange"
 
 install:
-		if [ ${MANF} ]&&[ -f ${BINFIX}/shelper ];then
-		    md5sum -c ${MANF} || echo "ERROR: ${BINFIX}/shelper has been locally modified! aborted." && exit 9
+		@if [ ${MANF} ]&&[ -f ${BINFIX}/shelper ];then \
+		    md5sum -c ${MANF} || ERR=$? ; \
+		    [ ${ERR} -ne 0 ] && echo "ERROR: ${BINFIX}/shelper has been locally modified! aborted." && exit 9 ; \
 		fi
 		@install -o ${USER} -g ${GROUP} -m 0755 splunkhelper.in ${BINFIX}/shelper
 		for L in "${LINKS}";do \
