@@ -2,7 +2,7 @@
 #########################################################################################
 #
 # Author:       Thomas Fischer <mail@sedi.one>, https://github.com/secure-diversITy
-# Copyright:    2015-2019
+# Copyright:    2015-2020
 # License:      CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 #
 # Desc:
@@ -19,7 +19,7 @@
 #
 #########################################################################################
 #
-# Last changed: 2019-09-26
+# Last changed: 2020-03-31
 #
 #########################################################################################
 
@@ -682,6 +682,10 @@ case $BIN in
         shelperdsreload) # reload DS classes
         # check if we're runnin on a DS first!
         F_CHECKDS
+
+        # API auth
+        F_AUTH $ALLARGS
+
         if [ ! "$ID" == "$SPLUSR" ];then
             echo -e "... dropping privileges to user <$SPLUSR>\n"
             $SUBIN -c "$SPLBIN reload deploy-server" - $SPLUSR
