@@ -274,7 +274,7 @@ F_HUPDATE(){
             echo -e "\n\tERROR: while downloading from <$UPDATEURL> or creating temp path <$UPDTMP>. ABORTED."
             exit 3
         fi
-        cd ./*/splunkhelper && make uninstall && make install
+        cd ./*/splunkhelper && make update
         if [ $? -eq 0 ];then
             echo -e "\nUpdate went fine. All done successful. ENJOY YOUR NEW VERSION OF SPLUNKHELPER :o)\n\n"
         else
