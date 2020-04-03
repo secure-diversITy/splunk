@@ -5,6 +5,7 @@ USER = root
 GROUP = root
 
 LINKS = "shelperrestart \
+		shelperauth \
 		shelperwebrestart \
 		shelperdebug \
 		shelperstop \
