@@ -76,6 +76,9 @@ but without carrying about the correct user permission.
     ****************************************************************************************************************
     $> shelper                       Provides direct access to splunk> binary but with the powers of shelper!
                                     (real exec: like "$SPLBIN" )
+
+    $> shelperauth                   Generates just an auth token
+                                    (real exec: "splunk login -auth")
                                         
     $> shelperrestart                Restarts splunk>
                                     (real exec: "splunk restart")

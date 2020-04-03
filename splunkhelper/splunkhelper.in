@@ -19,7 +19,7 @@
 #
 #########################################################################################
 #
-# Last changed: 2020-03-31
+# Last changed: 2020-04-03
 #
 #########################################################################################
 
@@ -148,6 +148,9 @@ F_HELP(){
     ****************************************************************************************************************
     $> shelper                          Provides direct access to splunk> binary but with the powers of shelper!
                                         (real exec: like "$SPLBIN" )
+
+    $> shelperauth                      Generates just an auth token
+                                        (real exec: "splunk login -auth")
 
     $> shelperrestart                   Restarts splunk>
                                         (real exec: "splunk restart")
@@ -567,6 +570,9 @@ case $BIN in
         # workaround for DAMN $@ handling in bash when fwd them to su
         for i in "$@";do ARGS="$ARGS $i";done
                 if [ ! "$ID" == "$SPLUSR" ];then echo -e "... dropping privileges to user <$SPLUSR>\n... shelper arguments: $ARGS\n" && $SUBIN -c "$SPLBIN $ARGS" - $SPLUSR; else echo && "$SPLBIN" "$@";fi
+        ;;
+        shelperauth) # just auth
+            F_AUTH $ALLARGS
         ;;
         shelperstop) # stop shelper>
         F_CHKHA
